@@ -1,0 +1,37 @@
+* Running it
+#+begin_src 
+git clone https://github.com/LeonardoBizzoni/LBPL.git
+cd LBPL
+mkdir build
+cd build
+cmake ..
+make
+#+end_src
+
+* Example script
+#+begin_src 
+fn fib(n) {
+    if (n < 2) {
+        return n;
+    }
+    return fib(n-1)+fib(n-2);
+}
+
+class Prova {
+    init(n) {
+        let start = clock();
+        fib(n);
+        let end = clock();
+
+        println("fib(26) runtime: " + (end-start));
+    }
+      
+    prova() { println("prova"); }
+}
+
+let a = Prova(25);
+a.var1 = 10;
+println(a.var1);
+a.var1 = 210;
+println(a.var1);
+#+end_src
