@@ -1,19 +1,28 @@
 #include "main.h"
+#include <fcntl.h>
+#include <iostream>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 int main(const int argc, const char **argv) {
   if (argc < 2) {
-    std::cerr << "\033[1;31mNot enough arguemnts.\tUsage: lbpl [script]" << std::endl;
+    std::cerr << "\033[1;31mNot enough arguemnts.\tUsage: lbpl [script]"
+              << std::endl;
     return 1;
   }
 
-  std::ifstream sourceFile(argv[1]);
-  std::string filename(argv[1]);
-  if (!sourceFile.is_open()) {
-    std::cerr << "Error opening the file." << std::endl;
-    return 1;
+  int fd = open(argv[1], O_RDONLY, S_IRUSR | S_IWUSR);
+  struct stat sb;
+
+  if (fstat(fd, &sb) == -1) {
+    perror("Couldn't get file size.\n");
   }
 
-  Parser *parser = new Parser(sourceFile, filename);
+  char *file_in_memory =
+      (char *)mmap(nullptr, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+
+  Parser *parser = new Parser(file_in_memory, argv[1]);
   std::vector<std::unique_ptr<Stmt>> statements = parser->parse();
 
   // AST_Printer test;
@@ -35,5 +44,6 @@ int main(const int argc, const char **argv) {
   }
 
   delete parser;
-  sourceFile.close();
+  munmap(file_in_memory, sb.st_size);
+  close(fd);
 }

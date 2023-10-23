@@ -1,32 +1,11 @@
 #include "parser.h"
-
-// static size_t totalMem = 0;
-// void *operator new(size_t size) {
-//   totalMem += size;
-//   void *ptr = malloc(size + sizeof(size_t));
-//   if (ptr) {
-//     *((size_t *)ptr) = size;
-//     return (char *)ptr + sizeof(size_t);
-//   } else {
-//     throw std::bad_alloc();
-//   }
-//   // return malloc(size);
-// }
-
-// void operator delete(void *ptr) noexcept {
-//   if (ptr) {
-//     size_t *originalPtr = (size_t *)((char *)ptr - sizeof(size_t));
-//     size_t size = *originalPtr;
-//     totalMem -= size;
-//     free(originalPtr);
-//   }
-// }
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 
 std::vector<std::unique_ptr<Stmt>> Parser::parse() {
   std::vector<std::unique_ptr<Stmt>> stmts;
 
-  // {
-  //   Timer timer;
   while (!isAtEnd()) {
     try {
       if (match(TokenType::Import)) {
@@ -42,9 +21,7 @@ std::vector<std::unique_ptr<Stmt>> Parser::parse() {
       synchronize();
     }
   }
-  // }
 
-  // std::cout << totalMem << "B\n";
   return stmts;
 }
 
@@ -73,11 +50,19 @@ std::vector<std::unique_ptr<Stmt>> Parser::importStmt() {
   }
   importedFiles.insert(path->lexeme);
 
-  std::ifstream sourceFile(path->lexeme);
-  if (!sourceFile.is_open()) {
-    throw SyntaxError(previous.get(), "Error opening file: '" + path->lexeme +
-                                          "'.\nIs the path correct?");
+  int fd = open(path->lexeme.c_str(), O_RDONLY, S_IRUSR | S_IWUSR);
+  struct stat sb;
+
+  if (fstat(fd, &sb) == -1) {
+    perror("Couldn't get file size.\n");
   }
+
+  char *sourceFile =
+      (char *)mmap(nullptr, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+
+  CONSUME_SEMICOLON("import");
+
+  return (new Parser(sourceFile, path->lexeme, importedFiles))->parse();
 
   CONSUME_SEMICOLON("import");
 

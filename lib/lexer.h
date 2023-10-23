@@ -11,11 +11,9 @@
 class Lexer {
 private:
   int line;
-  std::ifstream &stream;
   std::string filename;
-  std::string currentLine;
-  std::string::iterator start;
-  std::string::iterator current;
+  const char *start;
+  const char *current;
 
 public:
   bool hadError;
@@ -38,13 +36,12 @@ private:
   char peekNext() const;
 
   bool isAtEnd() const;
-  bool isAtLineEnd() const;
   bool isDigit(char ch) const;
   bool isAlpha(char ch) const;
   bool match(char ch);
 
 public:
-  Lexer(std::ifstream &, const std::string &);
+  Lexer(const char*, const std::string &);
 
   int getLine();
   int getColumn();

@@ -5,41 +5,13 @@
 #include "LBPLTypes.h"
 #include "runtime_error.h"
 
-#include <chrono>
 #include <cstddef>
 #include <map>
 #include <memory>
 #include <string>
 #include <variant>
-class Timer {
-  std::chrono::time_point<std::chrono::high_resolution_clock> m_startTimepoint;
-
-public:
-  Timer() { m_startTimepoint = std::chrono::high_resolution_clock::now(); }
-
-  ~Timer() { stop(); }
-
-  void stop() {
-    auto endTimepoint = std::chrono::high_resolution_clock::now();
-
-    auto start = std::chrono::time_point_cast<std::chrono::microseconds>(
-                     m_startTimepoint)
-                     .time_since_epoch()
-                     .count();
-    auto end =
-        std::chrono::time_point_cast<std::chrono::microseconds>(endTimepoint)
-            .time_since_epoch()
-            .count();
-
-    auto duration = end - start;
-    auto ms = duration * 0.001;
-
-    std::cout << duration << "µs (" << ms << "ms)\n";
-  }
-};
 
 void Interpreter::interpret(std::vector<std::unique_ptr<Stmt>> &stmts) {
-  std::cout << "\tinterpreter begin\n";
   try {
     for (auto &&stmt : stmts) {
       stmt->accept(this);
@@ -160,53 +132,8 @@ void Interpreter::visitReturnStmt(ReturnStmt *stmt) {
 LBPLType Interpreter::visitBinaryExpr(BinaryExpr *expr) {
   LBPLType left = expr->left->accept(this);
   LBPLType right = expr->right->accept(this);
+
   return performBinaryOperation(expr->op, left, right);
-
-  /* if (std::holds_alternative<int>(left) &&
-   * std::holds_alternative<int>(right)) { */
-  /*   return performBinaryOperation(expr->op.get(), std::get<int>(left), */
-  /*                                 std::get<int>(right)); */
-  /* } else if (std::holds_alternative<double>(left) && */
-  /*            std::holds_alternative<double>(right)) { */
-  /*   return performBinaryOperation(expr->op.get(), std::get<double>(left), */
-  /*                                 std::get<double>(right)); */
-  /* } else if (std::holds_alternative<double>(left) && */
-  /*            std::holds_alternative<int>(right)) { */
-  /*   return performBinaryOperation(expr->op.get(), std::get<double>(left), */
-  /*                                 std::get<int>(right)); */
-  /* } else if (std::holds_alternative<int>(left) && */
-  /*            std::holds_alternative<double>(right)) { */
-  /*   return performBinaryOperation(expr->op.get(), std::get<int>(left), */
-  /*                                 std::get<double>(right)); */
-  /* } else if ((std::holds_alternative<std::string>(left) || */
-  /*             std::holds_alternative<std::string>(right)) && */
-  /*            expr->op->type == TokenType::Plus) { */
-  /*   if (std::holds_alternative<std::string>(left) && */
-  /*       std::holds_alternative<std::string>(right)) { */
-  /*     return std::get<std::string>(left) + */
-  /*                     std::get<std::string>(right); */
-  /*   } else if (std::holds_alternative<std::string>(left) && */
-  /*              std::holds_alternative<int>(right)) { */
-  /*     return std::get<std::string>(left) + */
-  /*                     std::to_string(std::get<int>(right)); */
-  /*   } else if (std::holds_alternative<int>(left) && */
-  /*              std::holds_alternative<std::string>(right)) { */
-  /*     return std::get<std::string>(left) + */
-  /*                     std::to_string(std::get<double>(right)); */
-  /*   } else if (std::holds_alternative<double>(left) && */
-  /*              std::holds_alternative<std::string>(right)) { */
-  /*     return std::to_string(std::get<double>(left)) + */
-  /*                     std::get<std::string>(right); */
-  /*   } else if (std::holds_alternative<std::string>(left) && */
-  /*              std::holds_alternative<char>(right)) { */
-  /*     return std::get<std::string>(left) + std::get<char>(right); */
-  /*   } else if (std::holds_alternative<char>(left) && */
-  /*              std::holds_alternative<std::string>(right)) { */
-  /*     return std::get<char>(left) + std::get<std::string>(right); */
-  /*   } */
-  /* } */
-
-  /* throw RuntimeError(expr->op.get(), "Invalid binary operation operand."); */
 }
 
 LBPLType Interpreter::visitBreakExpr(BreakExpr *) { throw BreakException(); }
@@ -259,6 +186,7 @@ LBPLType Interpreter::visitGroupExpr(GroupingExpr *expr) {
 
 LBPLType Interpreter::visitSuperExpr(SuperExpr *) { return nullptr; }
 LBPLType Interpreter::visitThisExpr(ThisExpr *) { return nullptr; }
+
 LBPLType Interpreter::visitCallExpr(FnCallExpr *expr) {
   LBPLType callee = expr->callee->accept(this);
 
@@ -292,10 +220,12 @@ LBPLType Interpreter::visitCallExpr(FnCallExpr *expr) {
 LBPLType Interpreter::visitGetFieldExpr(GetFieldExpr *expr) {
   LBPLType instance = expr->instance->accept(this);
   if (std::holds_alternative<std::shared_ptr<LBPLInstance>>(instance)) {
-    return std::get<std::shared_ptr<LBPLInstance>>(instance)->get(expr->field.get());
+    return std::get<std::shared_ptr<LBPLInstance>>(instance)->get(
+        expr->field.get());
   }
 
-  throw RuntimeError(expr->instance.get(), "Only instances of classes can have properties");
+  throw RuntimeError(expr->instance.get(),
+                     "Only instances of classes can have properties");
 }
 
 LBPLType Interpreter::visitSetFieldExpr(SetFieldExpr *expr) {
@@ -303,9 +233,11 @@ LBPLType Interpreter::visitSetFieldExpr(SetFieldExpr *expr) {
 
   if (std::holds_alternative<std::shared_ptr<LBPLInstance>>(instance)) {
     LBPLType value = expr->value->accept(this);
-    std::get<std::shared_ptr<LBPLInstance>>(instance)->set(expr->field.get(), value);
+    std::get<std::shared_ptr<LBPLInstance>>(instance)->set(expr->field.get(),
+                                                           value);
   } else {
-    throw RuntimeError(expr->instance.get(), "Only instances of classes can have properties");
+    throw RuntimeError(expr->instance.get(),
+                       "Only instances of classes can have properties");
   }
 
   return nullptr;
@@ -471,41 +403,6 @@ LBPLType Interpreter::performBinaryOperation(std::shared_ptr<const Token> &op,
       },
       left, right);
 }
-
-/* template <typename T, typename G> */
-/* LBPLType Interpreter::performBinaryOperation(const Token *op, const T &left,
- */
-/*                                              const G &right) { */
-/*   switch (op->type) { */
-/*   case TokenType::EqualEqual: */
-/*     return left == right; */
-/*   case TokenType::BangEqual: */
-/*     return left != right; */
-/*   case TokenType::Less: */
-/*     return left < right; */
-/*   case TokenType::LessEqual: */
-/*     return left <= right; */
-/*   case TokenType::Greater: */
-/*     return left > right; */
-/*   case TokenType::GreaterEqual: */
-/*     return left >= right; */
-/*   case TokenType::Plus: */
-/*     return left + right; */
-/*   case TokenType::Minus: */
-/*     return left - right; */
-/*   case TokenType::Star: */
-/*     return left * right; */
-/*   case TokenType::Slash: */
-/*     if (right == T(0)) { */
-/*       throw RuntimeError(op, "Division by zero."); */
-/*     } */
-/*     return left / right; */
-/*   case TokenType::ModOp: */
-/*     return (int)left % (int)right; */
-/*   default: */
-/*     throw RuntimeError(op, "Unsupported binary operation."); */
-/*   } */
-/* } */
 
 void Interpreter::executeBlock(std::vector<std::unique_ptr<Stmt>> &body,
                                std::shared_ptr<Environment> &&env) {

@@ -65,13 +65,13 @@ private:
   std::unique_ptr<Expr> primary();
 
 public:
-  Parser(std::ifstream &file, std::string &filename)
+  Parser(const char *file, const std::string &filename)
       : lexer(new Lexer(file, filename)), current(lexer->getNextToken()),
         previous(current) {
     importedFiles.insert(filename);
   }
 
-  Parser(std::ifstream &file, const std::string &filename,
+  Parser(const char *file, const std::string &filename,
          std::unordered_set<std::string> &importedFiles)
       : importedFiles(importedFiles), lexer(new Lexer(file, filename)),
         current(lexer->getNextToken()), previous(current) {}

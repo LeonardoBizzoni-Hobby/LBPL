@@ -1,18 +1,16 @@
 #include "lexer.h"
 
-Lexer::Lexer(std::ifstream &stream, const std::string &filename)
-    : stream(stream), line(1), hadError(false), filename(filename) {
-  goToNextLine();
-}
+Lexer::Lexer(const char *stream, const std::string &filename)
+    : line(1), hadError(false), filename(filename), current(stream), start(stream) {}
 
-bool Lexer::isAtEnd() const { return stream.eof(); }
-bool Lexer::isAtLineEnd() const { return *current == '\0'; }
+bool Lexer::isAtEnd() const { return *current == '\0'; }
 bool Lexer::isDigit(char ch) const { return ch >= '0' && ch <= '9'; }
 bool Lexer::isAlpha(char ch) const {
   return ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch == '_';
 }
+
 bool Lexer::match(char ch) {
-  if (isAtLineEnd() || ch != *current) {
+  if (isAtEnd() || ch != *current) {
     return false;
   }
 
@@ -20,24 +18,12 @@ bool Lexer::match(char ch) {
   return true;
 }
 
-void Lexer::goToNextLine() {
-  std::getline(stream, currentLine);
-  current = currentLine.begin();
-  start = currentLine.begin();
-}
-
 char Lexer::peek() const { return *current; }
 char Lexer::peekNext() const { return *(current + 1); }
+
 char Lexer::advance() {
-  if (isAtLineEnd()) {
-    if (isAtEnd()) {
-      return '\0';
-    }
-
-    std::getline(stream, currentLine);
-    current = currentLine.begin();
-
-    return *current;
+  if (isAtEnd()) {
+    return '\0';
   }
 
   return *(current++);
@@ -136,11 +122,11 @@ std::shared_ptr<const Token> Lexer::makeToken(TokenType type,
                                               std::string value) {
   if (value != "") {
     return std::make_shared<const Token>(type, value, line,
-                                         start - currentLine.begin(), filename);
+                                         current-start, filename);
   }
 
   return std::make_shared<const Token>(type, std::string(start, current), line,
-                                       start - currentLine.begin(), filename);
+                                       current-start, filename);
 }
 
 std::shared_ptr<const Token> Lexer::makeNumberToken() {
@@ -169,13 +155,13 @@ std::shared_ptr<const Token> Lexer::makeIdentifierToken() {
 std::shared_ptr<const Token> Lexer::makeErrorToken(std::string msg) {
   hadError = true;
   return std::make_shared<const Token>(TokenType::Error, msg, line,
-                                       start - currentLine.begin(), filename);
+                                       current-start, filename);
 }
 
 void Lexer::skipWhitespace() {
   do {
     switch (peek()) {
-    case '\0':
+    case '\n':
       line++;
     case ' ':
     case '\r':
@@ -183,7 +169,7 @@ void Lexer::skipWhitespace() {
       advance();
       break;
     case '#':
-      while (!isAtLineEnd()) {
+      while (peek() != '\n') {
         advance();
       }
 
@@ -236,8 +222,7 @@ std::shared_ptr<const Token> Lexer::getNextToken() {
     if (match('|')) {
       return makeToken(TokenType::Or);
     }
-    return makeErrorToken("Invalid operator '|' in: `" + currentLine +
-                          "`.\n\tDid you mean '|\033[4;32m|\033[0m'?");
+    return makeErrorToken("Invalid token '" + std::to_string(*current) + "'.");
   case '-':
     return makeToken(TokenType::Minus);
   case '+':
@@ -277,7 +262,6 @@ std::shared_ptr<const Token> Lexer::getNextToken() {
     if (!match('\'')) {
       auto res =
           makeErrorToken("A char can't be more then one character long.");
-      goToNextLine();
       return res;
     }
     return makeToken(TokenType::Char, val);
@@ -285,7 +269,7 @@ std::shared_ptr<const Token> Lexer::getNextToken() {
   case '"': {
     std::string lexeme;
 
-    while (peek() != '"' && !isAtLineEnd()) {
+    while (peek() != '"' && !isAtEnd()) {
       if (peek() == '\\') {
         advance();
 
@@ -316,7 +300,7 @@ std::shared_ptr<const Token> Lexer::getNextToken() {
       }
     }
 
-    if (isAtLineEnd()) {
+    if (isAtEnd()) {
       return makeErrorToken("Unterminated string.");
     }
 
@@ -333,5 +317,5 @@ std::shared_ptr<const Token> Lexer::getNextToken() {
 }
 
 int Lexer::getLine() { return line; }
-int Lexer::getColumn() { return current - currentLine.begin(); }
+int Lexer::getColumn() { return current - start; }
 std::string Lexer::getFilename() { return filename; }
