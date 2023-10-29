@@ -1,5 +1,5 @@
 * Running it
-#+begin_src 
+#+begin_src
 git clone https://github.com/LeonardoBizzoni/LBPL.git
 cd LBPL
 mkdir build
@@ -9,7 +9,7 @@ make
 #+end_src
 
 * Example script
-#+begin_src 
+#+begin_src
 fn fib(n) {
     if (n < 2) {
         return n;
@@ -19,14 +19,15 @@ fn fib(n) {
 
 class Prova {
     init(n) {
-        let start = clock();
+        this.n = n;
+        this.start = clock();
         fib(n);
-        let end = clock();
-
-        println("fib(26) runtime: " + (end-start));
+        this.end = clock();
     }
-      
-    prova() { println("prova"); }
+
+    runtime() {
+        println("fib("+ this.n +") runtime: " + (this.end - this.start));
+    }
 }
 
 let a = Prova(25);
@@ -34,4 +35,6 @@ a.var1 = 10;
 println(a.var1);
 a.var1 = 210;
 println(a.var1);
+
+a.runtime();
 #+end_src
