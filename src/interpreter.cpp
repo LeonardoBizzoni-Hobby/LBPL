@@ -185,7 +185,7 @@ LBPLType Interpreter::visitGroupExpr(GroupingExpr *expr) {
 }
 
 LBPLType Interpreter::visitSuperExpr(SuperExpr *) { return nullptr; }
-LBPLType Interpreter::visitThisExpr(ThisExpr *) { return nullptr; }
+LBPLType Interpreter::visitThisExpr(ThisExpr *expr) { return lookupVariable(expr->keyword, expr); }
 
 LBPLType Interpreter::visitCallExpr(FnCallExpr *expr) {
   LBPLType callee = expr->callee->accept(this);

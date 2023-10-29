@@ -2,6 +2,7 @@
 #define EXPRESSIONS_H
 
 #include "common.h"
+#include "token.h"
 #include "visitor.h"
 
 #include <cstdint>
@@ -95,8 +96,12 @@ struct SuperExpr : public Expr {
 };
 
 struct ThisExpr : public Expr {
-  ThisExpr(int line, int column, const std::string &file)
-      : Expr(line, column, file) {}
+public:
+  std::shared_ptr<const Token> keyword;
+
+  ThisExpr(int line, int column, const std::string &file, std::shared_ptr<const Token>& keyword)
+      : keyword(keyword), Expr(line, column, file) {}
+
   LBPLType accept(Expression::Visitor *visitor) {
     return visitor->visitThisExpr(this);
   }
