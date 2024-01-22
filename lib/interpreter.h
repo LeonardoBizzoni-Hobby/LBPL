@@ -15,10 +15,10 @@ class BreakException {};
 class ContinueException {};
 class ReturnException {
 public:
-  LBPLType value;
+  Value value;
 
 public:
-  ReturnException(LBPLType &&value) : value(value) {}
+  ReturnException(Value &&value) : value(value) {}
 };
 
 class Interpreter : Statement::Visitor, Expression::Visitor {
@@ -29,13 +29,13 @@ private:
 private:
   void execute(std::unique_ptr<Stmt> &);
 
-  LBPLType evaluate(std::unique_ptr<Expr> &);
-  LBPLType lookupVariable(std::shared_ptr<const Token> &, Expr *);
-  bool isTruthy(const LBPLType &);
-  bool isTruthy(LBPLType &&);
+  Value evaluate(std::unique_ptr<Expr> &);
+  Value lookupVariable(std::shared_ptr<const Token> &, Expr *);
+  bool isTruthy(const Value &);
+  bool isTruthy(Value &&);
 
-  LBPLType performBinaryOperation(std::shared_ptr<const Token> &,
-                                  const LBPLType &, const LBPLType &);
+  Value performBinaryOperation(std::shared_ptr<const Token> &,
+                                  const Value &, const Value &);
 
   void visitFnStmt(FnStmt *) override;
   void visitVarStmt(VarStmt *) override;
@@ -47,20 +47,20 @@ private:
   void visitExprStmt(ExprStmt *) override;
   void visitReturnStmt(ReturnStmt *) override;
 
-  LBPLType visitBinaryExpr(BinaryExpr *) override;
-  LBPLType visitBreakExpr(BreakExpr *) override;
-  LBPLType visitContinueExpr(ContinueExpr *) override;
-  LBPLType visitUnaryExpr(UnaryExpr *) override;
-  LBPLType visitLiteralExpr(LiteralExpr *) override;
-  LBPLType visitGroupExpr(GroupingExpr *) override;
-  LBPLType visitSuperExpr(SuperExpr *) override;
-  LBPLType visitThisExpr(ThisExpr *) override;
-  LBPLType visitCallExpr(FnCallExpr *) override;
-  LBPLType visitGetFieldExpr(GetFieldExpr *) override;
-  LBPLType visitSetFieldExpr(SetFieldExpr *) override;
-  LBPLType visitTernaryExpr(TernaryExpr *) override;
-  LBPLType visitVarExpr(VariableExpr *) override;
-  LBPLType visitAssignExpr(AssignExpr *) override;
+  Value visitBinaryExpr(BinaryExpr *) override;
+  Value visitBreakExpr(BreakExpr *) override;
+  Value visitContinueExpr(ContinueExpr *) override;
+  Value visitUnaryExpr(UnaryExpr *) override;
+  Value visitLiteralExpr(LiteralExpr *) override;
+  Value visitGroupExpr(GroupingExpr *) override;
+  Value visitSuperExpr(SuperExpr *) override;
+  Value visitThisExpr(ThisExpr *) override;
+  Value visitCallExpr(FnCallExpr *) override;
+  Value visitGetFieldExpr(GetFieldExpr *) override;
+  Value visitSetFieldExpr(SetFieldExpr *) override;
+  Value visitTernaryExpr(TernaryExpr *) override;
+  Value visitVarExpr(VariableExpr *) override;
+  Value visitAssignExpr(AssignExpr *) override;
 
 public:
   void executeBlock(std::vector<std::unique_ptr<Stmt>> &,

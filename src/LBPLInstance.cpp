@@ -1,6 +1,6 @@
 #include "LBPLInstance.h"
 
-LBPLType LBPLInstance::get(const Token *name) {
+Value LBPLInstance::get(const Token *name) {
   if (fields.contains(name->lexeme)) {
     return fields.find(name->lexeme)->second;
   }
@@ -14,6 +14,6 @@ LBPLType LBPLInstance::get(const Token *name) {
   throw RuntimeError(name, "Undefined field '" + name->lexeme + "'.");
 }
 
-void LBPLInstance::set(const Token *name, LBPLType &value) {
+void LBPLInstance::set(const Token *name, Value &value) {
   fields.insert_or_assign(name->lexeme, value);
 }

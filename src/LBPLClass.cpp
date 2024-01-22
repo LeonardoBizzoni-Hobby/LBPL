@@ -2,7 +2,7 @@
 #include "LBPLInstance.h"
 #include "interpreter.h"
 
-LBPLType LBPLClass::call(Interpreter *interpreter, std::vector<LBPLType> &args) {
+Value LBPLClass::call(Interpreter *interpreter, std::vector<Value> &args) {
     auto instance = std::make_shared<LBPLInstance>(this);
 
     LBPLFunc *init = findMethod("init");

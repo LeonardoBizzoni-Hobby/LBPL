@@ -10,15 +10,15 @@
 class LBPLInstance {
 private:
   LBPLClass *lbplClass;
-  std::map<std::string, LBPLType> fields;
+  std::map<std::string, Value> fields;
 
 public:
   LBPLInstance(LBPLClass *lbplClass) : lbplClass(lbplClass), fields() {}
   LBPLInstance(LBPLInstance *other)
       : lbplClass(other->lbplClass), fields(other->fields) {}
 
-  LBPLType get(const Token *name);
-  void set(const Token *name, LBPLType &value);
+  Value get(const Token *name);
+  void set(const Token *name, Value &value);
 };
 
 #endif

@@ -13,7 +13,7 @@ void LBPLFunc::bind(std::shared_ptr<LBPLInstance> &instance) {
 
 int LBPLFunc::arity() { return stmt->args.size(); }
 
-LBPLType LBPLFunc::call(Interpreter *interpreter, std::vector<LBPLType> &args) {
+Value LBPLFunc::call(Interpreter *interpreter, std::vector<Value> &args) {
   auto env = std::make_shared<Environment>(closureEnv);
 
   for (int i = 0; i < stmt->args.size(); i++) {

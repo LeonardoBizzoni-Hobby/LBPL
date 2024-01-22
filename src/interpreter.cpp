@@ -31,7 +31,7 @@ void Interpreter::visitFnStmt(FnStmt *stmt) {
 }
 
 void Interpreter::visitVarStmt(VarStmt *stmt) {
-  LBPLType value;
+  Value value;
   if (stmt->value) {
     value = stmt->value->accept(this);
   }
@@ -40,7 +40,7 @@ void Interpreter::visitVarStmt(VarStmt *stmt) {
 }
 
 void Interpreter::visitClassStmt(ClassStmt *stmt) {
-  LBPLType superclass;
+  Value superclass;
   currentEnv->define(stmt->name->lexeme, nullptr);
 
   if (stmt->superclass) {
@@ -129,20 +129,20 @@ void Interpreter::visitReturnStmt(ReturnStmt *stmt) {
   throw ReturnException(stmt->value->accept(this));
 }
 
-LBPLType Interpreter::visitBinaryExpr(BinaryExpr *expr) {
-  LBPLType left = expr->left->accept(this);
-  LBPLType right = expr->right->accept(this);
+Value Interpreter::visitBinaryExpr(BinaryExpr *expr) {
+  Value left = expr->left->accept(this);
+  Value right = expr->right->accept(this);
 
   return performBinaryOperation(expr->op, left, right);
 }
 
-LBPLType Interpreter::visitBreakExpr(BreakExpr *) { throw BreakException(); }
-LBPLType Interpreter::visitContinueExpr(ContinueExpr *) {
+Value Interpreter::visitBreakExpr(BreakExpr *) { throw BreakException(); }
+Value Interpreter::visitContinueExpr(ContinueExpr *) {
   throw ContinueException();
 }
 
-LBPLType Interpreter::visitUnaryExpr(UnaryExpr *expr) {
-  LBPLType right = expr->right->accept(this);
+Value Interpreter::visitUnaryExpr(UnaryExpr *expr) {
+  Value right = expr->right->accept(this);
 
   if (expr->op->type == TokenType::Minus) {
     if (std::holds_alternative<int>(right)) {
@@ -157,7 +157,7 @@ LBPLType Interpreter::visitUnaryExpr(UnaryExpr *expr) {
   return nullptr;
 }
 
-LBPLType Interpreter::visitLiteralExpr(LiteralExpr *expr) {
+Value Interpreter::visitLiteralExpr(LiteralExpr *expr) {
   if (expr->token->type == TokenType::True) {
     return true;
   } else if (expr->token->type == TokenType::False) {
@@ -180,17 +180,17 @@ LBPLType Interpreter::visitLiteralExpr(LiteralExpr *expr) {
   return nullptr;
 }
 
-LBPLType Interpreter::visitGroupExpr(GroupingExpr *expr) {
+Value Interpreter::visitGroupExpr(GroupingExpr *expr) {
   return expr->expr->accept(this);
 }
 
-LBPLType Interpreter::visitSuperExpr(SuperExpr *) { return nullptr; }
-LBPLType Interpreter::visitThisExpr(ThisExpr *expr) { return lookupVariable(expr->keyword, expr); }
+Value Interpreter::visitSuperExpr(SuperExpr *) { return nullptr; }
+Value Interpreter::visitThisExpr(ThisExpr *expr) { return lookupVariable(expr->keyword, expr); }
 
-LBPLType Interpreter::visitCallExpr(FnCallExpr *expr) {
-  LBPLType callee = expr->callee->accept(this);
+Value Interpreter::visitCallExpr(FnCallExpr *expr) {
+  Value callee = expr->callee->accept(this);
 
-  std::vector<LBPLType> args;
+  std::vector<Value> args;
   args.reserve(expr->args.size());
 
   for (auto &&arg : expr->args) {
@@ -217,8 +217,8 @@ LBPLType Interpreter::visitCallExpr(FnCallExpr *expr) {
                      "Can only call a function or class initializer.");
 }
 
-LBPLType Interpreter::visitGetFieldExpr(GetFieldExpr *expr) {
-  LBPLType instance = expr->instance->accept(this);
+Value Interpreter::visitGetFieldExpr(GetFieldExpr *expr) {
+  Value instance = expr->instance->accept(this);
   if (std::holds_alternative<std::shared_ptr<LBPLInstance>>(instance)) {
     return std::get<std::shared_ptr<LBPLInstance>>(instance)->get(
         expr->field.get());
@@ -228,11 +228,11 @@ LBPLType Interpreter::visitGetFieldExpr(GetFieldExpr *expr) {
                      "Only instances of classes can have properties");
 }
 
-LBPLType Interpreter::visitSetFieldExpr(SetFieldExpr *expr) {
-  LBPLType instance = expr->instance->accept(this);
+Value Interpreter::visitSetFieldExpr(SetFieldExpr *expr) {
+  Value instance = expr->instance->accept(this);
 
   if (std::holds_alternative<std::shared_ptr<LBPLInstance>>(instance)) {
-    LBPLType value = expr->value->accept(this);
+    Value value = expr->value->accept(this);
     std::get<std::shared_ptr<LBPLInstance>>(instance)->set(expr->field.get(),
                                                            value);
   } else {
@@ -243,7 +243,7 @@ LBPLType Interpreter::visitSetFieldExpr(SetFieldExpr *expr) {
   return nullptr;
 }
 
-LBPLType Interpreter::visitTernaryExpr(TernaryExpr *expr) {
+Value Interpreter::visitTernaryExpr(TernaryExpr *expr) {
   if (isTruthy(expr->condition->accept(this))) {
     return expr->trueBranch->accept(this);
   }
@@ -251,11 +251,11 @@ LBPLType Interpreter::visitTernaryExpr(TernaryExpr *expr) {
   return expr->falseBranch->accept(this);
 }
 
-LBPLType Interpreter::visitVarExpr(VariableExpr *expr) {
+Value Interpreter::visitVarExpr(VariableExpr *expr) {
   return lookupVariable(expr->variable, expr);
 }
-LBPLType Interpreter::visitAssignExpr(AssignExpr *expr) {
-  LBPLType value = expr->value->accept(this);
+Value Interpreter::visitAssignExpr(AssignExpr *expr) {
+  Value value = expr->value->accept(this);
 
   auto it = locals.find(expr);
   if (it == locals.end()) {
@@ -269,15 +269,15 @@ LBPLType Interpreter::visitAssignExpr(AssignExpr *expr) {
 
 void Interpreter::execute(std::unique_ptr<Stmt> &stmt) { stmt->accept(this); }
 
-LBPLType Interpreter::evaluate(std::unique_ptr<Expr> &expr) {
+Value Interpreter::evaluate(std::unique_ptr<Expr> &expr) {
   return expr->accept(this);
 }
 
-LBPLType Interpreter::performBinaryOperation(std::shared_ptr<const Token> &op,
-                                             const LBPLType &left,
-                                             const LBPLType &right) {
+Value Interpreter::performBinaryOperation(std::shared_ptr<const Token> &op,
+                                             const Value &left,
+                                             const Value &right) {
   auto performIntOp = [](int l, int r,
-                         std::shared_ptr<const Token> &op) -> LBPLType {
+                         std::shared_ptr<const Token> &op) -> Value {
     switch (op->type) {
     case TokenType::Plus:
       return l + r;
@@ -313,7 +313,7 @@ LBPLType Interpreter::performBinaryOperation(std::shared_ptr<const Token> &op,
   };
 
   auto performDoubleOp = [](double l, double r,
-                            std::shared_ptr<const Token> &op) -> LBPLType {
+                            std::shared_ptr<const Token> &op) -> Value {
     switch (op->type) {
     case TokenType::Plus:
       return l + r;
@@ -344,7 +344,7 @@ LBPLType Interpreter::performBinaryOperation(std::shared_ptr<const Token> &op,
   };
 
   auto performStringOp = [](const std::string &l, const std::string &r,
-                            std::shared_ptr<const Token> &op) -> LBPLType {
+                            std::shared_ptr<const Token> &op) -> Value {
     if (op->type == TokenType::Plus) {
       return l + r;
     } else {
@@ -353,7 +353,7 @@ LBPLType Interpreter::performBinaryOperation(std::shared_ptr<const Token> &op,
   };
 
   return std::visit(
-      [&](const auto &l, const auto &r) -> LBPLType {
+      [&](const auto &l, const auto &r) -> Value {
         using L = std::decay_t<decltype(l)>;
         using R = std::decay_t<decltype(r)>;
 
@@ -426,7 +426,7 @@ void Interpreter::executeBlock(std::vector<std::unique_ptr<Stmt>> &body,
   currentEnv = prev;
 }
 
-bool Interpreter::isTruthy(const LBPLType &value) {
+bool Interpreter::isTruthy(const Value &value) {
   if (std::holds_alternative<std::nullptr_t>(value)) {
     return std::get<std::nullptr_t>(value) != nullptr;
   } else if (std::holds_alternative<bool>(value)) {
@@ -440,9 +440,9 @@ bool Interpreter::isTruthy(const LBPLType &value) {
   return false;
 }
 
-bool Interpreter::isTruthy(LBPLType &&value) { return isTruthy(value); }
+bool Interpreter::isTruthy(Value &&value) { return isTruthy(value); }
 
-LBPLType Interpreter::lookupVariable(std::shared_ptr<const Token> &name,
+Value Interpreter::lookupVariable(std::shared_ptr<const Token> &name,
                                      Expr *expr) {
   auto it = locals.find(expr);
 

@@ -17,20 +17,20 @@ class AST_Printer : public Statement::Visitor, public Expression::Visitor {
   void visitExprStmt(ExprStmt *) override;
   void visitReturnStmt(ReturnStmt *) override;
 
-  LBPLType visitBinaryExpr(BinaryExpr *) override;
-  LBPLType visitBreakExpr(BreakExpr *) override;
-  LBPLType visitContinueExpr(ContinueExpr *) override;
-  LBPLType visitUnaryExpr(UnaryExpr *) override;
-  LBPLType visitLiteralExpr(LiteralExpr *) override;
-  LBPLType visitGroupExpr(GroupingExpr *) override;
-  LBPLType visitSuperExpr(SuperExpr *) override;
-  LBPLType visitThisExpr(ThisExpr *) override;
-  LBPLType visitCallExpr(FnCallExpr *) override;
-  LBPLType visitGetFieldExpr(GetFieldExpr *) override;
-  LBPLType visitSetFieldExpr(SetFieldExpr *) override;
-  LBPLType visitTernaryExpr(TernaryExpr *) override;
-  LBPLType visitVarExpr(VariableExpr *) override;
-  LBPLType visitAssignExpr(AssignExpr *) override;
+  Value visitBinaryExpr(BinaryExpr *) override;
+  Value visitBreakExpr(BreakExpr *) override;
+  Value visitContinueExpr(ContinueExpr *) override;
+  Value visitUnaryExpr(UnaryExpr *) override;
+  Value visitLiteralExpr(LiteralExpr *) override;
+  Value visitGroupExpr(GroupingExpr *) override;
+  Value visitSuperExpr(SuperExpr *) override;
+  Value visitThisExpr(ThisExpr *) override;
+  Value visitCallExpr(FnCallExpr *) override;
+  Value visitGetFieldExpr(GetFieldExpr *) override;
+  Value visitSetFieldExpr(SetFieldExpr *) override;
+  Value visitTernaryExpr(TernaryExpr *) override;
+  Value visitVarExpr(VariableExpr *) override;
+  Value visitAssignExpr(AssignExpr *) override;
 };
 
 #endif

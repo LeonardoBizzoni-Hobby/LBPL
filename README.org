@@ -11,22 +11,30 @@ make
 * Example script
 #+begin_src
 fn fib(n) {
-    if (n < 2) {
-        return n;
-    }
-    return fib(n-1)+fib(n-2);
+   return fibIter(n, 0, 1);
+}
+
+fn fibIter(n, curr, next) {
+   if (n == 0) {
+      return curr;
+   } else if (n == 1) {
+     return next;
+   } else {
+     return fibIter(n - 1, next, curr + next);
+   }
 }
 
 class Prova {
     init(n) {
         this.n = n;
         this.start = clock();
-        fib(n);
+        this.fib_n = fib(n);
         this.end = clock();
     }
 
     runtime() {
-        println("fib("+ this.n +") runtime: " + (this.end - this.start));
+        println("fib("+ this.n +") = "+ this.fib_n + " runtime: " +
+                (this.end - this.start));
     }
 }
 

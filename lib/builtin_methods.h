@@ -14,7 +14,7 @@ public:
 
   int arity() override { return 1; };
 
-  LBPLType call(Interpreter *, std::vector<LBPLType> &args) override {
+  Value call(Interpreter *, std::vector<Value> &args) override {
     if (std::holds_alternative<std::string>(args[0])) {
       std::cout << std::get<std::string>(args[0]) << std::endl;
     } else if (std::holds_alternative<int>(args[0])) {
@@ -37,7 +37,7 @@ public:
 
   int arity() override { return 0; };
 
-  LBPLType call(Interpreter *, std::vector<LBPLType> &args) override {
+  Value call(Interpreter *, std::vector<Value> &args) override {
     return std::chrono::duration_cast<std::chrono::milliseconds>(
                std::chrono::system_clock::now().time_since_epoch())
                .count() /

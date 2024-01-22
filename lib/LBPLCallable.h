@@ -9,7 +9,7 @@ class Interpreter;
 class LBPLCallable {
 public:
   virtual int arity() = 0;
-  virtual LBPLType call(Interpreter*, std::vector<LBPLType>&) = 0;
+  virtual Value call(Interpreter*, std::vector<Value>&) = 0;
 };
 
 #endif

@@ -9,7 +9,7 @@ class LBPLInstance;
 class LBPLCallable;
 class LBPLClass;
 
-using LBPLType =
+using Value =
     std::variant<std::string, int, double, bool, char, std::nullptr_t,
                  std::shared_ptr<LBPLClass>, std::shared_ptr<LBPLInstance>,
                  std::shared_ptr<LBPLCallable>>;

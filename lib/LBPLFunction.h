@@ -24,7 +24,7 @@ public:
   void bind(std::shared_ptr<LBPLInstance> &instance);
 
   int arity() override;
-  LBPLType call(Interpreter *, std::vector<LBPLType> &) override;
+  Value call(Interpreter *, std::vector<Value> &) override;
 };
 
 #endif

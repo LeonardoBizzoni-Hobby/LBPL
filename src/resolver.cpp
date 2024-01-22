@@ -164,39 +164,39 @@ void Resolver::visitReturnStmt(ReturnStmt *ret) {
   }
 }
 
-LBPLType Resolver::visitBinaryExpr(BinaryExpr *expr) {
+Value Resolver::visitBinaryExpr(BinaryExpr *expr) {
   expr->left->accept(this);
   expr->right->accept(this);
   return nullptr;
 }
 
-LBPLType Resolver::visitBreakExpr(BreakExpr *expr) {
+Value Resolver::visitBreakExpr(BreakExpr *expr) {
   if (loops <= 0) {
     throw SyntaxError(expr, "Can't break from outside of a loop.");
   }
   return nullptr;
 }
 
-LBPLType Resolver::visitContinueExpr(ContinueExpr *expr) {
+Value Resolver::visitContinueExpr(ContinueExpr *expr) {
   if (loops <= 0) {
     throw SyntaxError(expr, "Can't break from outside of a loop.");
   }
   return nullptr;
 }
 
-LBPLType Resolver::visitUnaryExpr(UnaryExpr *expr) {
+Value Resolver::visitUnaryExpr(UnaryExpr *expr) {
   expr->right->accept(this);
   return nullptr;
 }
 
-LBPLType Resolver::visitLiteralExpr(LiteralExpr *) { return nullptr; }
+Value Resolver::visitLiteralExpr(LiteralExpr *) { return nullptr; }
 
-LBPLType Resolver::visitGroupExpr(GroupingExpr *expr) {
+Value Resolver::visitGroupExpr(GroupingExpr *expr) {
   expr->expr->accept(this);
   return nullptr;
 }
 
-LBPLType Resolver::visitSuperExpr(SuperExpr *expr) {
+Value Resolver::visitSuperExpr(SuperExpr *expr) {
   if (currentClass == ClassType::None) {
     throw SyntaxError(expr, "Can't access 'super' from outside of class body.");
   } else if (currentClass != ClassType::Subclass) {
@@ -208,12 +208,12 @@ LBPLType Resolver::visitSuperExpr(SuperExpr *expr) {
   return nullptr;
 }
 
-LBPLType Resolver::visitThisExpr(ThisExpr *expr) {
+Value Resolver::visitThisExpr(ThisExpr *expr) {
   resolveLocal(expr, "this");
   return nullptr;
 }
 
-LBPLType Resolver::visitCallExpr(FnCallExpr *expr) {
+Value Resolver::visitCallExpr(FnCallExpr *expr) {
   expr->callee->accept(this);
 
   for (auto &&arg : expr->args) {
@@ -222,25 +222,25 @@ LBPLType Resolver::visitCallExpr(FnCallExpr *expr) {
   return nullptr;
 }
 
-LBPLType Resolver::visitGetFieldExpr(GetFieldExpr *expr) {
+Value Resolver::visitGetFieldExpr(GetFieldExpr *expr) {
   expr->instance->accept(this);
   return nullptr;
 }
 
-LBPLType Resolver::visitSetFieldExpr(SetFieldExpr *expr) {
+Value Resolver::visitSetFieldExpr(SetFieldExpr *expr) {
   expr->value->accept(this);
   expr->instance->accept(this);
   return nullptr;
 }
 
-LBPLType Resolver::visitTernaryExpr(TernaryExpr *expr) {
+Value Resolver::visitTernaryExpr(TernaryExpr *expr) {
   expr->condition->accept(this);
   expr->trueBranch->accept(this);
   expr->falseBranch->accept(this);
   return nullptr;
 }
 
-LBPLType Resolver::visitVarExpr(VariableExpr *expr) {
+Value Resolver::visitVarExpr(VariableExpr *expr) {
   if (!scopes.empty() && scopes.back().contains(expr->variable->lexeme) &&
       scopes.back().find(expr->variable->lexeme)->second != VarState::Ready) {
     throw SyntaxError(expr, "You are trying to read the value of a variable "
@@ -251,7 +251,7 @@ LBPLType Resolver::visitVarExpr(VariableExpr *expr) {
   return nullptr;
 }
 
-LBPLType Resolver::visitAssignExpr(AssignExpr *expr) {
+Value Resolver::visitAssignExpr(AssignExpr *expr) {
   expr->value->accept(this);
   resolveLocal(expr, expr->variable.get());
   return nullptr;

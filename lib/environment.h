@@ -12,7 +12,7 @@
 
 class Environment {
 public:
-  std::map<std::string, LBPLType> env;
+  std::map<std::string, Value> env;
   std::shared_ptr<Environment> enclosing;
 
 public:
@@ -26,17 +26,17 @@ public:
     return std::make_shared<Environment>(*this);
   }
 
-  void define(const std::string &, LBPLType &);
-  void define(const std::string &, LBPLType &&);
+  void define(const std::string &, Value &);
+  void define(const std::string &, Value &&);
 
   void printEnv(const std::string &&);
 
-  LBPLType get(std::shared_ptr<const Token> &);
-  LBPLType getAt(int, std::shared_ptr<const Token> &);
-  LBPLType getAt(int, const std::string &);
-  void assign(std::shared_ptr<const Token> &, LBPLType &);
-  void assign(std::shared_ptr<const Token> &, LBPLType &&);
-  void assignAt(int, std::shared_ptr<const Token> &, LBPLType &);
+  Value get(std::shared_ptr<const Token> &);
+  Value getAt(int, std::shared_ptr<const Token> &);
+  Value getAt(int, const std::string &);
+  void assign(std::shared_ptr<const Token> &, Value &);
+  void assign(std::shared_ptr<const Token> &, Value &&);
+  void assignAt(int, std::shared_ptr<const Token> &, Value &);
 };
 
 #endif

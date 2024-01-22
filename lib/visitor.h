@@ -22,20 +22,20 @@ struct Visitor {
 
 namespace Expression {
 struct Visitor {
-  virtual LBPLType visitBinaryExpr(BinaryExpr *) = 0;
-  virtual LBPLType visitBreakExpr(BreakExpr *) = 0;
-  virtual LBPLType visitContinueExpr(ContinueExpr *) = 0;
-  virtual LBPLType visitUnaryExpr(UnaryExpr *) = 0;
-  virtual LBPLType visitLiteralExpr(LiteralExpr *) = 0;
-  virtual LBPLType visitGroupExpr(GroupingExpr *) = 0;
-  virtual LBPLType visitSuperExpr(SuperExpr *) = 0;
-  virtual LBPLType visitThisExpr(ThisExpr *) = 0;
-  virtual LBPLType visitCallExpr(FnCallExpr *) = 0;
-  virtual LBPLType visitGetFieldExpr(GetFieldExpr *) = 0;
-  virtual LBPLType visitSetFieldExpr(SetFieldExpr *) = 0;
-  virtual LBPLType visitTernaryExpr(TernaryExpr *) = 0;
-  virtual LBPLType visitVarExpr(VariableExpr *) = 0;
-  virtual LBPLType visitAssignExpr(AssignExpr *) = 0;
+  virtual Value visitBinaryExpr(BinaryExpr *) = 0;
+  virtual Value visitBreakExpr(BreakExpr *) = 0;
+  virtual Value visitContinueExpr(ContinueExpr *) = 0;
+  virtual Value visitUnaryExpr(UnaryExpr *) = 0;
+  virtual Value visitLiteralExpr(LiteralExpr *) = 0;
+  virtual Value visitGroupExpr(GroupingExpr *) = 0;
+  virtual Value visitSuperExpr(SuperExpr *) = 0;
+  virtual Value visitThisExpr(ThisExpr *) = 0;
+  virtual Value visitCallExpr(FnCallExpr *) = 0;
+  virtual Value visitGetFieldExpr(GetFieldExpr *) = 0;
+  virtual Value visitSetFieldExpr(SetFieldExpr *) = 0;
+  virtual Value visitTernaryExpr(TernaryExpr *) = 0;
+  virtual Value visitVarExpr(VariableExpr *) = 0;
+  virtual Value visitAssignExpr(AssignExpr *) = 0;
 };
 } // namespace Expression
 

@@ -6,15 +6,15 @@
 #include <utility>
 #include <variant>
 
-void Environment::define(const std::string &name, LBPLType &value) {
+void Environment::define(const std::string &name, Value &value) {
   env.insert(std::make_pair(name, value));
 }
-void Environment::define(const std::string &name, LBPLType &&value) {
+void Environment::define(const std::string &name, Value &&value) {
   env.insert(std::make_pair(name, value));
 }
 
 
-LBPLType Environment::get(std::shared_ptr<const Token> &name) {
+Value Environment::get(std::shared_ptr<const Token> &name) {
   auto it = env.find(name->lexeme);
 
   if (it != env.end()) {
@@ -27,11 +27,11 @@ LBPLType Environment::get(std::shared_ptr<const Token> &name) {
   throw RuntimeError(name.get(), "Undefined name '"+name->lexeme+"'.");
 }
 
-LBPLType Environment::getAt(int depth, std::shared_ptr<const Token> &name) {
+Value Environment::getAt(int depth, std::shared_ptr<const Token> &name) {
   return getAt(depth, name->lexeme);
 }
 
-LBPLType Environment::getAt(int depth, const std::string &name) {
+Value Environment::getAt(int depth, const std::string &name) {
   if (depth > 0) {
     return enclosing->getAt(depth-1, name);
   }
@@ -40,7 +40,7 @@ LBPLType Environment::getAt(int depth, const std::string &name) {
   return it != env.end() ? it->second : nullptr;
 }
 
-void Environment::assign(std::shared_ptr<const Token> &name, LBPLType &value) {
+void Environment::assign(std::shared_ptr<const Token> &name, Value &value) {
   if (env.contains(name->lexeme)) {
     env.insert_or_assign(name->lexeme, value);
   } else if (enclosing) {
@@ -50,11 +50,11 @@ void Environment::assign(std::shared_ptr<const Token> &name, LBPLType &value) {
   }
 }
 
-void Environment::assign(std::shared_ptr<const Token> &name, LBPLType &&value) {
+void Environment::assign(std::shared_ptr<const Token> &name, Value &&value) {
   assign(name, value);
 }
 
-void Environment::assignAt(int depth, std::shared_ptr<const Token> &name, LBPLType &value) {
+void Environment::assignAt(int depth, std::shared_ptr<const Token> &name, Value &value) {
   if (depth > 0) {
     enclosing->assignAt(depth-1, name, value);
   }
