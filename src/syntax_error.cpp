@@ -1,4 +1,5 @@
-#include "syntax_error.h"
+#include "syntax_error.hpp"
+#include <sstream>
 
 std::string SyntaxError::what() {
   std::stringstream ss(msg);

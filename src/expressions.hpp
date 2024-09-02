@@ -1,11 +1,12 @@
 #ifndef EXPRESSIONS_H
 #define EXPRESSIONS_H
 
-#include "common.h"
-#include "token.h"
-#include "visitor.h"
+#include "token.hpp"
 
-#include <cstdint>
+#include "token.hpp"
+#include "visitor.hpp"
+#include <string>
+
 #include <memory>
 #include <vector>
 
@@ -16,7 +17,7 @@ struct Expr {
   Expr(int line, int column, const std::string &filename)
       : line(line), column(column), file(filename) {}
 
-  virtual ~Expr(){};
+  virtual ~Expr() {};
   virtual Value accept(Expression::Visitor *) { return nullptr; }
 };
 
@@ -99,7 +100,8 @@ struct ThisExpr : public Expr {
 public:
   std::shared_ptr<const Token> keyword;
 
-  ThisExpr(int line, int column, const std::string &file, std::shared_ptr<const Token>& keyword)
+  ThisExpr(int line, int column, const std::string &file,
+           std::shared_ptr<const Token> &keyword)
       : keyword(keyword), Expr(line, column, file) {}
 
   Value accept(Expression::Visitor *visitor) {

@@ -1,4 +1,5 @@
-#include "LBPLInstance.h"
+#include "LBPLInstance.hpp"
+#include "runtime_error.hpp"
 
 Value LBPLInstance::get(const Token *name) {
   if (fields.contains(name->lexeme)) {

@@ -1,7 +1,7 @@
 #ifndef LBPL_CALLABLE_H
 #define LBPL_CALLABLE_H
 
-#include "LBPLTypes.h"
+#include "LBPLTypes.hpp"
 #include <vector>
 
 class Interpreter;

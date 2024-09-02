@@ -1,11 +1,9 @@
 #ifndef RESOLVER_H
 #define RESOLVER_H
 
-#include "environment.h"
-#include "interpreter.h"
-#include "statements.h"
-#include "syntax_error.h"
-#include "visitor.h"
+#include "interpreter.hpp"
+#include "statements.hpp"
+#include "visitor.hpp"
 
 #include <map>
 #include <memory>

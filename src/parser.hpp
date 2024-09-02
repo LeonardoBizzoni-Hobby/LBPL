@@ -1,12 +1,10 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "expressions.h"
-#include "lexer.h"
-#include "statements.h"
-#include "syntax_error.h"
+#include "expressions.hpp"
+#include "lexer.hpp"
+#include "statements.hpp"
 
-#include <fstream>
 #include <memory>
 #include <unordered_set>
 #include <vector>

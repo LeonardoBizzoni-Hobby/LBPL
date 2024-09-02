@@ -1,10 +1,8 @@
 #ifndef VISITOR_H
 #define VISITOR_H
 
-#include "LBPLTypes.h"
-#include "tree_nodes.h"
-
-#include <iostream>
+#include "LBPLTypes.hpp"
+#include "tree_nodes.hpp"
 
 namespace Statement {
 struct Visitor {

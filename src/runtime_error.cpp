@@ -1,4 +1,5 @@
-#include "runtime_error.h"
+#include "runtime_error.hpp"
+#include <sstream>
 
 std::string RuntimeError::what() {
   std::stringstream ss(msg);

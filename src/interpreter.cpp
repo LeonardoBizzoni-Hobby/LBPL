@@ -1,9 +1,9 @@
-#include "interpreter.h"
-#include "LBPLClass.h"
-#include "LBPLFunction.h"
-#include "LBPLInstance.h"
-#include "LBPLTypes.h"
-#include "runtime_error.h"
+#include "interpreter.hpp"
+#include "LBPLClass.hpp"
+#include "LBPLFunction.hpp"
+#include "LBPLInstance.hpp"
+#include "LBPLTypes.hpp"
+#include "runtime_error.hpp"
 
 #include <cstddef>
 #include <map>

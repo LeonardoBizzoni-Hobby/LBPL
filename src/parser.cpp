@@ -1,5 +1,8 @@
-#include "parser.h"
+#include "parser.hpp"
+#include "syntax_error.hpp"
+
 #include <fcntl.h>
+#include <iostream>
 #include <sys/mman.h>
 #include <sys/stat.h>
 
@@ -455,7 +458,8 @@ std::unique_ptr<Expr> Parser::primary() {
 
     return std::make_unique<SuperExpr>(line, col, lexer->getFilename(), field);
   } else if (match(TokenType::This)) {
-    return std::make_unique<ThisExpr>(line, col, lexer->getFilename(), previous);
+    return std::make_unique<ThisExpr>(line, col, lexer->getFilename(),
+                                      previous);
   } else if (match(TokenType::Identifier)) {
     return std::make_unique<VariableExpr>(line, col, lexer->getFilename(),
                                           previous);
@@ -493,6 +497,8 @@ void Parser::synchronize() {
     case TokenType::If:
     case TokenType::Return:
       return;
+    default:
+      break;
     }
 
     advance();

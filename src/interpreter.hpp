@@ -1,11 +1,10 @@
 #ifndef INTERPRETER_H
 #define INTERPRETER_H
 
-#include "LBPLTypes.h"
-#include "builtin_methods.h"
-#include "environment.h"
-#include "runtime_error.h"
-#include "visitor.h"
+#include "LBPLTypes.hpp"
+#include "builtin_methods.hpp"
+#include "environment.hpp"
+#include "visitor.hpp"
 
 #include <map>
 #include <memory>

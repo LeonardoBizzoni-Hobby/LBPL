@@ -1,14 +1,12 @@
 #ifndef ENVIRONMENT_H
 #define ENVIRONMENT_H
 
-#include "LBPLTypes.h"
-#include "token.h"
-#include "tree_nodes.h"
+#include "LBPLTypes.hpp"
+#include "token.hpp"
 
 #include <map>
 #include <memory>
 #include <string>
-#include <variant>
 
 class Environment {
 public:

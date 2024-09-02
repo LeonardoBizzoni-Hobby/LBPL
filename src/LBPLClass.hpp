@@ -1,8 +1,8 @@
 #ifndef LBPL_CLASS_H
 #define LBPL_CLASS_H
 
-#include "LBPLCallable.h"
-#include "LBPLFunction.h"
+#include "LBPLCallable.hpp"
+#include "LBPLFunction.hpp"
 
 #include <map>
 #include <memory>

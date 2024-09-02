@@ -1,8 +1,8 @@
 #ifndef AST_PRINTER_H
 #define AST_PRINTER_H
 
-#include "tree_nodes.h"
-#include "visitor.h"
+#include "tree_nodes.hpp"
+#include "visitor.hpp"
 
 class AST_Printer : public Statement::Visitor, public Expression::Visitor {
   void printLocation(Stmt *);

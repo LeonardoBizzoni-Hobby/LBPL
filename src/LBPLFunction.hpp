@@ -1,9 +1,10 @@
 #ifndef LBPL_FUNCTION_H
 #define LBPL_FUNCTION_H
 
-#include "LBPLCallable.h"
-#include "environment.h"
-#include "statements.h"
+#include "LBPLCallable.hpp"
+#include "environment.hpp"
+#include "statements.hpp"
+
 #include <memory>
 
 class LBPLFunc : public LBPLCallable {

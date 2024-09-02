@@ -1,10 +1,12 @@
-#include "environment.h"
-#include "LBPLTypes.h"
-#include "runtime_error.h"
+#include "environment.hpp"
+#include "LBPLTypes.hpp"
+#include "runtime_error.hpp"
+
 #include <memory>
 #include <string>
 #include <utility>
 #include <variant>
+#include <iostream>
 
 void Environment::define(const std::string &name, Value &value) {
   env.insert(std::make_pair(name, value));
@@ -12,7 +14,6 @@ void Environment::define(const std::string &name, Value &value) {
 void Environment::define(const std::string &name, Value &&value) {
   env.insert(std::make_pair(name, value));
 }
-
 
 Value Environment::get(std::shared_ptr<const Token> &name) {
   auto it = env.find(name->lexeme);
@@ -24,7 +25,7 @@ Value Environment::get(std::shared_ptr<const Token> &name) {
     return enclosing->get(name);
   }
 
-  throw RuntimeError(name.get(), "Undefined name '"+name->lexeme+"'.");
+  throw RuntimeError(name.get(), "Undefined name '" + name->lexeme + "'.");
 }
 
 Value Environment::getAt(int depth, std::shared_ptr<const Token> &name) {
@@ -33,7 +34,7 @@ Value Environment::getAt(int depth, std::shared_ptr<const Token> &name) {
 
 Value Environment::getAt(int depth, const std::string &name) {
   if (depth > 0) {
-    return enclosing->getAt(depth-1, name);
+    return enclosing->getAt(depth - 1, name);
   }
 
   auto it = env.find(name);
@@ -46,7 +47,8 @@ void Environment::assign(std::shared_ptr<const Token> &name, Value &value) {
   } else if (enclosing) {
     enclosing->assign(name, value);
   } else {
-    throw RuntimeError(name.get(), "Undefined variable '"+name->lexeme+"'.");
+    throw RuntimeError(name.get(),
+                       "Undefined variable '" + name->lexeme + "'.");
   }
 }
 
@@ -54,17 +56,18 @@ void Environment::assign(std::shared_ptr<const Token> &name, Value &&value) {
   assign(name, value);
 }
 
-void Environment::assignAt(int depth, std::shared_ptr<const Token> &name, Value &value) {
+void Environment::assignAt(int depth, std::shared_ptr<const Token> &name,
+                           Value &value) {
   if (depth > 0) {
-    enclosing->assignAt(depth-1, name, value);
+    enclosing->assignAt(depth - 1, name, value);
   }
 
   env.insert_or_assign(name->lexeme, value);
 }
 
 void Environment::printEnv(const std::string &&msg) {
-  std::cout << "========"<< msg <<"=========" << std::endl;
-  for (const auto& [key, value] : env) {
+  std::cout << "========" << msg << "=========" << std::endl;
+  for (const auto &[key, value] : env) {
     std::cout << "\t" << key << ": ";
 
     if (std::holds_alternative<int>(value)) {

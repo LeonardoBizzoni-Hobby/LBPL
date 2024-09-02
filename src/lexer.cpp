@@ -1,4 +1,4 @@
-#include "lexer.h"
+#include "lexer.hpp"
 
 Lexer::Lexer(const char *stream, const std::string &filename)
     : line(1), hadError(false), filename(filename), current(stream), start(stream) {}

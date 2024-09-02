@@ -1,11 +1,9 @@
 #ifndef LBPL_INSTANCE_H
 #define LBPL_INSTANCE_H
 
-#include "LBPLClass.h"
-#include "runtime_error.h"
+#include "LBPLClass.hpp"
 
 #include <map>
-#include <memory>
 
 class LBPLInstance {
 private:

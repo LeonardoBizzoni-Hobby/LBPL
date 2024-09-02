@@ -1,5 +1,5 @@
-#include "ast_printer.h"
-#include "statements.h"
+#include "ast_printer.hpp"
+#include "statements.hpp"
 
 #include <iostream>
 

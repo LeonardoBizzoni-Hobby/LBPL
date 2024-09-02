@@ -1,9 +1,12 @@
-#include "main.h"
 #include <fcntl.h>
 #include <iostream>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
+#include "parser.hpp"
+#include "interpreter.hpp"
+#include "resolver.hpp"
 
 int main(const int argc, const char **argv) {
   if (argc < 2) {

@@ -1,4 +1,5 @@
-#include "resolver.h"
+#include "resolver.hpp"
+#include "syntax_error.hpp"
 
 void Resolver::resolve(std::vector<std::unique_ptr<Stmt>> &stmts) {
   for (auto &&stmt : stmts) {

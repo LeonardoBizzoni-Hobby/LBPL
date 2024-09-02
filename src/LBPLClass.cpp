@@ -1,6 +1,6 @@
-#include "LBPLClass.h"
-#include "LBPLInstance.h"
-#include "interpreter.h"
+#include "LBPLClass.hpp"
+#include "LBPLInstance.hpp"
+#include "interpreter.hpp"
 
 Value LBPLClass::call(Interpreter *interpreter, std::vector<Value> &args) {
     auto instance = std::make_shared<LBPLInstance>(this);

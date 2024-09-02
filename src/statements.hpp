@@ -1,11 +1,8 @@
 #ifndef STATEMENTS_H
 #define STATEMENTS_H
 
-#include "expressions.h"
-
+#include "expressions.hpp"
 #include <memory>
-#include <optional>
-#include <utility>
 
 struct Stmt {
   std::string filename;
@@ -20,12 +17,15 @@ struct Stmt {
 
 struct FnStmt : public Stmt {
   std::shared_ptr<const Token> name;
-  std::vector<std::shared_ptr<const Token> > args;
+  std::vector<std::shared_ptr<const Token>> args;
   std::vector<std::unique_ptr<Stmt>> body;
 
-  FnStmt(int line, int column, const std::string &file, std::shared_ptr<const Token> &name,
-         std::vector<std::shared_ptr<const Token>> &args, std::vector<std::unique_ptr<Stmt>> &&body)
-      : name(name), args(args), body(std::move(body)), Stmt(line, column, file) {}
+  FnStmt(int line, int column, const std::string &file,
+         std::shared_ptr<const Token> &name,
+         std::vector<std::shared_ptr<const Token>> &args,
+         std::vector<std::unique_ptr<Stmt>> &&body)
+      : name(name), args(args), body(std::move(body)),
+        Stmt(line, column, file) {}
 
   void accept(Statement::Visitor *visitor) { visitor->visitFnStmt(this); }
 };
@@ -34,10 +34,9 @@ struct VarStmt : public Stmt {
   std::shared_ptr<const Token> name;
   std::unique_ptr<Expr> value;
 
-  VarStmt(int line, int column, const std::string &file, std::shared_ptr<const Token> &name,
-          std::unique_ptr<Expr> &value)
-      : name(name), value(std::move(value)),
-        Stmt(line, column, file) {}
+  VarStmt(int line, int column, const std::string &file,
+          std::shared_ptr<const Token> &name, std::unique_ptr<Expr> &value)
+      : name(name), value(std::move(value)), Stmt(line, column, file) {}
 
   void accept(Statement::Visitor *visitor) { visitor->visitVarStmt(this); }
 };
@@ -47,7 +46,8 @@ struct ClassStmt : public Stmt {
   std::unique_ptr<VariableExpr> superclass;
   std::vector<std::unique_ptr<Stmt>> body;
 
-  ClassStmt(int line, int column, const std::string &file, std::shared_ptr<const Token> &name,
+  ClassStmt(int line, int column, const std::string &file,
+            std::shared_ptr<const Token> &name,
             std::unique_ptr<VariableExpr> &superclass,
             std::vector<std::unique_ptr<Stmt>> &&body)
       : name(name), superclass(std::move(superclass)), body(std::move(body)),
@@ -62,8 +62,8 @@ struct IfStmt : public Stmt {
   std::unique_ptr<Stmt> falseBranch;
 
   IfStmt(int line, int column, const std::string &file,
-         std::unique_ptr<Expr> &condition,
-         std::unique_ptr<Stmt> &trueBranch, std::unique_ptr<Stmt> &falseBranch)
+         std::unique_ptr<Expr> &condition, std::unique_ptr<Stmt> &trueBranch,
+         std::unique_ptr<Stmt> &falseBranch)
       : condition(std::move(condition)), trueBranch(std::move(trueBranch)),
         falseBranch(std::move(falseBranch)), Stmt(line, column, file) {}
 

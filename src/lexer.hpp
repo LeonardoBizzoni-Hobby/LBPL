@@ -1,12 +1,11 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#include "common.h"
+#include "token.hpp"
+#include "token_type.hpp"
 
-#include <fstream>
-#include <iomanip>
+#include <string>
 #include <memory>
-#include <vector>
 
 class Lexer {
 private:
@@ -41,7 +40,7 @@ private:
   bool match(char ch);
 
 public:
-  Lexer(const char*, const std::string &);
+  Lexer(const char *, const std::string &);
 
   int getLine();
   int getColumn();
