@@ -17,7 +17,7 @@ Value LBPLFunc::call(Interpreter *interpreter, std::vector<Value> &args) {
   auto env = std::make_shared<Environment>(closureEnv);
 
   for (int i = 0; i < stmt->args.size(); i++) {
-    env->define(stmt->args[i]->lexeme, args[i]);
+    env->define(std::get<const char *>(stmt->args[i]->lexeme), args[i]);
   }
 
   try {

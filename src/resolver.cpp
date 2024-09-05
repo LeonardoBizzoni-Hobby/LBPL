@@ -1,5 +1,6 @@
 #include "resolver.hpp"
 #include "syntax_error.hpp"
+#include <string_view>
 
 void Resolver::resolve(std::vector<std::unique_ptr<Stmt>> &stmts) {
   for (auto &&stmt : stmts) {
@@ -17,12 +18,13 @@ void Resolver::declare(const Token *name) {
     return;
   }
 
+  auto namestr = std::get<const char *>(name->lexeme);
   std::map<std::string, VarState> &scope = scopes.back();
-  if (scope.contains(name->lexeme)) {
+  if (scope.contains(namestr)) {
     throw SyntaxError(name, "Variable with this name already exists.");
   }
 
-  scope.insert(std::make_pair(name->lexeme, VarState::Init));
+  scope.insert(std::make_pair(namestr, VarState::Init));
 }
 
 void Resolver::define(const Token *name) {
@@ -30,12 +32,13 @@ void Resolver::define(const Token *name) {
     return;
   }
 
-  scopes.back().insert_or_assign(name->lexeme, VarState::Ready);
+  scopes.back().insert_or_assign(std::get<const char *>(name->lexeme),
+                                 VarState::Ready);
 }
 
 void Resolver::resolveLocal(Expr *expr, const Token *name) {
   for (int i = scopes.size() - 1; i >= 0; i--) {
-    if (scopes[i].contains(name->lexeme)) {
+    if (scopes[i].contains(std::get<const char *>(name->lexeme))) {
       interpreter->resolve(expr, scopes.size() - 1 - i);
       return;
     }
@@ -105,7 +108,8 @@ void Resolver::visitClassStmt(ClassStmt *clas) {
 
   for (auto &&stmt : clas->body) {
     auto method = dynamic_cast<FnStmt *>(stmt.get());
-    if (method && method->name->lexeme == "init") {
+    if (method && std::string_view(
+                      std::get<const char *>(method->name->lexeme)) == "init") {
       resolveFunction(method, FunctionType::Initializer);
     } else {
       resolveFunction(method, FunctionType::Function);
@@ -242,8 +246,11 @@ Value Resolver::visitTernaryExpr(TernaryExpr *expr) {
 }
 
 Value Resolver::visitVarExpr(VariableExpr *expr) {
-  if (!scopes.empty() && scopes.back().contains(expr->variable->lexeme) &&
-      scopes.back().find(expr->variable->lexeme)->second != VarState::Ready) {
+  if (!scopes.empty() &&
+      scopes.back().contains(std::get<const char *>(expr->variable->lexeme)) &&
+      scopes.back()
+              .find(std::get<const char *>(expr->variable->lexeme))
+              ->second != VarState::Ready) {
     throw SyntaxError(expr, "You are trying to read the value of a variable "
                             "that hasn't been defined yet.");
   }

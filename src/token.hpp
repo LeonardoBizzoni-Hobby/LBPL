@@ -3,18 +3,28 @@
 
 #include "token_type.hpp"
 
-#include <string>
+#include <cstddef>
+#include <cstdint>
+#include <ostream>
+#include <variant>
 
-class Token {
+using literal_t =
+    std::variant<const char *, char, int32_t, float, std::nullptr_t>;
+
+struct Token {
+  Token(TokenType type, literal_t lexeme, int32_t line, int32_t column,
+        const char *filename)
+      : type(type), lexeme(lexeme), line(line), column(column),
+        filename(filename) {}
+
 public:
-  int line;
-  int column;
+  int32_t line;
+  int32_t column;
   TokenType type;
-  std::string lexeme;
-  std::string filename;
-
-  Token(TokenType type, const std::string &lexeme, int line, int column, const std::string &filename)
-      : type(type), lexeme(lexeme), line(line), column(column), filename(filename) {}
+  literal_t lexeme;
+  const char *filename;
 };
+
+std::ostream &operator<<(std::ostream &os, const Token tk);
 
 #endif

@@ -6,6 +6,7 @@
 #include "runtime_error.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <string>
@@ -26,7 +27,7 @@ void Interpreter::resolve(Expr *expr, int depth) {
 }
 
 void Interpreter::visitFnStmt(FnStmt *stmt) {
-  currentEnv->define(stmt->name->lexeme,
+  currentEnv->define(std::get<const char *>(stmt->name->lexeme),
                      std::make_shared<LBPLFunc>(stmt, currentEnv, false));
 }
 
@@ -36,12 +37,12 @@ void Interpreter::visitVarStmt(VarStmt *stmt) {
     value = stmt->value->accept(this);
   }
 
-  currentEnv->define(stmt->name->lexeme, value);
+  currentEnv->define(std::get<const char *>(stmt->name->lexeme), value);
 }
 
 void Interpreter::visitClassStmt(ClassStmt *stmt) {
   Value superclass;
-  currentEnv->define(stmt->name->lexeme, nullptr);
+  currentEnv->define(std::get<const char *>(stmt->name->lexeme), nullptr);
 
   if (stmt->superclass) {
     superclass = stmt->superclass->accept(this);
@@ -62,20 +63,22 @@ void Interpreter::visitClassStmt(ClassStmt *stmt) {
       throw RuntimeError(methodStmt.get(), "Excepted class method.");
     }
 
-    auto fn = new LBPLFunc(method, currentEnv, method->name->lexeme == "init");
-    methods.insert(std::make_pair(method->name->lexeme, fn));
+    auto namestr = std::get<const char *>(method->name->lexeme);
+    auto fn = new LBPLFunc(method, currentEnv, std::string(namestr) == "init");
+    methods.insert(std::make_pair(namestr, fn));
   }
 
   if (stmt->superclass) {
     currentEnv = currentEnv->enclosing;
     currentEnv->assign(stmt->name,
                        std::make_shared<LBPLClass>(
-                           stmt->name->lexeme,
+                           std::get<const char *>(stmt->name->lexeme),
                            std::get<std::shared_ptr<LBPLClass>>(superclass),
                            methods));
   } else {
     currentEnv->assign(
-        stmt->name, std::make_shared<LBPLClass>(stmt->name->lexeme, methods));
+        stmt->name, std::make_shared<LBPLClass>(
+                        std::get<const char *>(stmt->name->lexeme), methods));
   }
 }
 
@@ -165,14 +168,15 @@ Value Interpreter::visitLiteralExpr(LiteralExpr *expr) {
   } else if (expr->token->type == TokenType::Nil) {
     return nullptr;
   } else if (expr->token->type == TokenType::Char) {
-    return expr->token->lexeme[0];
+    return std::get<char>(expr->token->lexeme);
   } else if (expr->token->type == TokenType::String) {
-    return expr->token->lexeme;
+    return std::get<const char *>(expr->token->lexeme);
   } else if (expr->token->type == TokenType::Number) {
-    if (expr->token->lexeme.find('.') == std::string::npos) {
-      return std::stoi(expr->token->lexeme);
+    if (std::holds_alternative<float>(expr->token->lexeme)) {
+      return std::get<float>(expr->token->lexeme);
+    } else {
+      return std::get<int32_t>(expr->token->lexeme);
     }
-    return std::stod(expr->token->lexeme);
   } else if (expr->token->type == TokenType::Identifier) {
     return lookupVariable(expr->token, expr);
   }
@@ -185,7 +189,9 @@ Value Interpreter::visitGroupExpr(GroupingExpr *expr) {
 }
 
 Value Interpreter::visitSuperExpr(SuperExpr *) { return nullptr; }
-Value Interpreter::visitThisExpr(ThisExpr *expr) { return lookupVariable(expr->keyword, expr); }
+Value Interpreter::visitThisExpr(ThisExpr *expr) {
+  return lookupVariable(expr->keyword, expr);
+}
 
 Value Interpreter::visitCallExpr(FnCallExpr *expr) {
   Value callee = expr->callee->accept(this);
@@ -274,8 +280,8 @@ Value Interpreter::evaluate(std::unique_ptr<Expr> &expr) {
 }
 
 Value Interpreter::performBinaryOperation(std::shared_ptr<const Token> &op,
-                                             const Value &left,
-                                             const Value &right) {
+                                          const Value &left,
+                                          const Value &right) {
   auto performIntOp = [](int l, int r,
                          std::shared_ptr<const Token> &op) -> Value {
     switch (op->type) {
@@ -443,7 +449,7 @@ bool Interpreter::isTruthy(const Value &value) {
 bool Interpreter::isTruthy(Value &&value) { return isTruthy(value); }
 
 Value Interpreter::lookupVariable(std::shared_ptr<const Token> &name,
-                                     Expr *expr) {
+                                  Expr *expr) {
   auto it = locals.find(expr);
 
   if (it == locals.end()) {

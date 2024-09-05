@@ -4,7 +4,10 @@
 #include "expressions.hpp"
 #include "lexer.hpp"
 #include "statements.hpp"
+#include "syntax_error.hpp"
+#include "token_type.hpp"
 
+#include <fstream>
 #include <memory>
 #include <unordered_set>
 #include <vector>
@@ -14,24 +17,34 @@
           TokenType::Semicolon);
 
 class Parser {
-private:
-  Lexer *lexer;
-  std::shared_ptr<const Token> current;
-  std::shared_ptr<const Token> previous;
-  std::unordered_set<std::string> importedFiles;
-
 public:
-  bool hadError;
+  Parser(std::ifstream &file, const char *filename)
+      : source(Lexer::Source(file, filename)),
+        current(Lexer::getNextToken(this->source)), previous(current) {
+    importedFiles.insert(filename);
+  }
+
+  Parser(std::ifstream &file, const char *filename,
+         std::unordered_set<std::string> &importedFiles)
+      : importedFiles(importedFiles), source(Lexer::Source(file, filename)),
+        current(Lexer::getNextToken(this->source)), previous(current) {}
+
+  std::vector<std::unique_ptr<Stmt>> parse();
 
 private:
-  bool isAtEnd();
   void synchronize();
   std::shared_ptr<const Token> advance();
 
-  template <typename... TokenTypes> bool check(const TokenTypes &...);
+  inline bool isAtEnd() { return current->type == TokenType::Eof; }
+
   template <typename... TokenTypes>
-  std::shared_ptr<const Token> consume(const std::string &msg, const TokenTypes &...);
-  template <typename... TokenTypes> bool match(const TokenTypes &...);
+  inline bool check(const TokenTypes &...types) {
+    return ((current->type == types) || ...);
+  }
+
+  template <typename... TokenTypes> bool match(const TokenTypes &...types);
+  std::shared_ptr<const Token> consume(const std::string &msg,
+                                       const TokenType &expected);
 
   std::vector<std::unique_ptr<Stmt>> importStmt();
   std::unique_ptr<FnStmt> functionDecl(const std::string &);
@@ -62,19 +75,14 @@ private:
   std::unique_ptr<Expr> call();
   std::unique_ptr<Expr> primary();
 
+private:
+  Lexer::Source source;
+  std::shared_ptr<const Token> current;
+  std::shared_ptr<const Token> previous;
+  std::unordered_set<std::string> importedFiles;
+
 public:
-  Parser(const char *file, const std::string &filename)
-      : lexer(new Lexer(file, filename)), current(lexer->getNextToken()),
-        previous(current) {
-    importedFiles.insert(filename);
-  }
-
-  Parser(const char *file, const std::string &filename,
-         std::unordered_set<std::string> &importedFiles)
-      : importedFiles(importedFiles), lexer(new Lexer(file, filename)),
-        current(lexer->getNextToken()), previous(current) {}
-
-  std::vector<std::unique_ptr<Stmt>> parse();
+  bool hadError;
 };
 
 #endif

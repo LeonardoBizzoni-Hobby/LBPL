@@ -1,8 +1,5 @@
-#include <fcntl.h>
+#include <fstream>
 #include <iostream>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <unistd.h>
 
 #include "parser.hpp"
 #include "interpreter.hpp"
@@ -15,17 +12,13 @@ int main(const int argc, const char **argv) {
     return 1;
   }
 
-  int fd = open(argv[1], O_RDONLY, S_IRUSR | S_IWUSR);
-  struct stat sb;
-
-  if (fstat(fd, &sb) == -1) {
-    perror("Couldn't get file size.\n");
+  std::ifstream file(argv[1]);
+  if (!file.good()) {
+    std::cerr << "I/O error: couldn't load file `" << argv[1] << "`.";
+    return 1;
   }
 
-  char *file_in_memory =
-      (char *)mmap(nullptr, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-
-  Parser *parser = new Parser(file_in_memory, argv[1]);
+  Parser *parser = new Parser(file, argv[1]);
   std::vector<std::unique_ptr<Stmt>> statements = parser->parse();
 
   // AST_Printer test;
@@ -47,6 +40,4 @@ int main(const int argc, const char **argv) {
   }
 
   delete parser;
-  munmap(file_in_memory, sb.st_size);
-  close(fd);
 }

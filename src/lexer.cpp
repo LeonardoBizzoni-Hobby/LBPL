@@ -1,321 +1,340 @@
 #include "lexer.hpp"
+#include "token.hpp"
+#include "token_type.hpp"
 
-Lexer::Lexer(const char *stream, const std::string &filename)
-    : line(1), hadError(false), filename(filename), current(stream), start(stream) {}
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <memory>
+#include <string_view>
 
-bool Lexer::isAtEnd() const { return *current == '\0'; }
-bool Lexer::isDigit(char ch) const { return ch >= '0' && ch <= '9'; }
-bool Lexer::isAlpha(char ch) const {
-  return ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch == '_';
-}
+#define MAKE_TOKEN(TYPE, LEXEME)                                               \
+  std::make_shared<const Token>(TYPE, LEXEME, file.line, file.column,          \
+                                file.filepath)
 
-bool Lexer::match(char ch) {
-  if (isAtEnd() || ch != *current) {
-    return false;
+namespace Lexer {
+std::shared_ptr<const Token> getNextToken(Source &file) {
+  if (file.stream.peek() == EOF) {
+    return MAKE_TOKEN(TokenType::Eof, 0);
   }
 
-  advance();
-  return true;
-}
+  skipWhitespace(file);
+  char ch = file.stream.peek();
 
-char Lexer::peek() const { return *current; }
-char Lexer::peekNext() const { return *(current + 1); }
-
-char Lexer::advance() {
-  if (isAtEnd()) {
-    return '\0';
+  if (isDigit(ch)) {
+    return makeNumberToken(file);
+  } else if (isAlpha(ch)) {
+    return makeIdentifierToken(file);
   }
 
-  return *(current++);
-}
+  switch ((ch = file.advance())) {
+  case '(':
+    return MAKE_TOKEN(TokenType::LeftParen, 0);
+  case ')':
+    return MAKE_TOKEN(TokenType::RightParen, 0);
+  case '{':
+    return MAKE_TOKEN(TokenType::LeftBrace, 0);
+  case '}':
+    return MAKE_TOKEN(TokenType::RightBrace, 0);
+  case '?':
+    return MAKE_TOKEN(TokenType::Question, 0);
+  case ',':
+    return MAKE_TOKEN(TokenType::Comma, 0);
+  case '.':
+    return MAKE_TOKEN(TokenType::Dot, 0);
+  case ':':
+    return MAKE_TOKEN(TokenType::Colon, 0);
+  case ';':
+    return MAKE_TOKEN(TokenType::Semicolon, 0);
+  case '%':
+    return MAKE_TOKEN(TokenType::ModOp, 0);
+  case '&':
+    if (char _ch = file.stream.peek(); _ch == '&') {
+      file.advance();
+      return MAKE_TOKEN(TokenType::And, 0);
+    } else {
+      std::string str_msg = "invalid token '" + std::string(1, _ch) + "'";
+      char *msg = (char *)malloc(str_msg.size() + 1);
+      std::strncpy(msg, str_msg.c_str(), str_msg.size() + 1);
+      return MAKE_TOKEN(TokenType::Error, msg);
+    }
+  case '|':
+    if (char _ch = file.stream.peek(); _ch == '|') {
+      file.advance();
+      return MAKE_TOKEN(TokenType::Or, 0);
+    } else {
+      std::string str_msg = "invalid token '" + std::string(1, _ch) + "'";
+      char *msg = (char *)malloc(str_msg.size() + 1);
+      std::strncpy(msg, str_msg.c_str(), str_msg.size() + 1);
+      return MAKE_TOKEN(TokenType::Error, msg);
+    }
+  case '-':
+    return MAKE_TOKEN(TokenType::Minus, 0);
+  case '+':
+    return MAKE_TOKEN(TokenType::Plus, 0);
+  case '/':
+    return MAKE_TOKEN(TokenType::Slash, 0);
+  case '*':
+    return MAKE_TOKEN(TokenType::Star, 0);
+  case '!':
+    if (file.stream.peek() == '=') {
+      file.advance();
+      return MAKE_TOKEN(TokenType::BangEqual, 0);
+    } else {
+      return MAKE_TOKEN(TokenType::Bang, 0);
+    }
+  case '=':
+    if (file.stream.peek() == '=') {
+      file.advance();
+      return MAKE_TOKEN(TokenType::EqualEqual, 0);
+    } else {
+      return MAKE_TOKEN(TokenType::Equal, 0);
+    }
+  case '>':
+    if (file.stream.peek() == '>') {
+      file.advance();
+      return MAKE_TOKEN(TokenType::ShiftRight, 0);
+    } else if (file.stream.peek() == '=') {
+      file.advance();
+      return MAKE_TOKEN(TokenType::GreaterEqual, 0);
+    } else {
+      return MAKE_TOKEN(TokenType::Greater, 0);
+    }
+  case '<':
+    if (file.stream.peek() == '<') {
+      file.advance();
+      return MAKE_TOKEN(TokenType::ShiftLeft, 0);
+    } else if (file.stream.peek() == '=') {
+      file.advance();
+      return MAKE_TOKEN(TokenType::LessEqual, 0);
+    } else {
+      return MAKE_TOKEN(TokenType::Less, 0);
+    }
+  case '\'': {
+    char lexeme = file.advance();
+    if (file.stream.peek() != '\'') {
+      return MAKE_TOKEN(TokenType::Error, "A char must be one character long.");
+    } else {
+      return MAKE_TOKEN(TokenType::Char, lexeme);
+    }
+  }
+  case '"': {
+    size_t len = 0;
+    char *lexeme = 0;
+    char new_ch = 0;
 
-TokenType Lexer::checkKeyword(int startIndex, const std::string &restOfKeyword,
-                              TokenType typeIfMatch) {
-  if (current - (start + startIndex) != restOfKeyword.length()) {
-    return TokenType::Identifier;
+    while (file.stream.eof() && file.stream.peek() != '"') {
+      if (file.stream.peek() == '\\') {
+        file.advance();
+
+        switch (file.stream.peek()) {
+        case 'n':
+          new_ch = '\n';
+          break;
+        case 't':
+          new_ch = '\t';
+          break;
+        case 'r':
+          new_ch = '\r';
+          break;
+        case '\'':
+          new_ch = '\'';
+          break;
+        case '\"':
+          new_ch = '"';
+          break;
+        case '\\':
+          new_ch = '\\';
+          break;
+        default:
+          return MAKE_TOKEN(TokenType::Error, "invalid escape sequence");
+        }
+
+        file.advance();
+      } else {
+        new_ch = file.advance();
+      }
+
+      lexeme = (char *)realloc(lexeme, ++len);
+      lexeme[len - 1] = new_ch;
+    }
+
+    if (file.stream.eof()) {
+      return MAKE_TOKEN(TokenType::Error, "Unterminated string.");
+    } else {
+      file.advance();
+      return MAKE_TOKEN(TokenType::String, lexeme);
+    }
+  }
   }
 
-  for (int i = 0; i < restOfKeyword.length(); i++) {
-    if (*(start + startIndex + i) != restOfKeyword[i]) {
-      return TokenType::Identifier;
+  if (file.stream.eof()) {
+    return MAKE_TOKEN(TokenType::Eof, 0);
+  }
+
+  return MAKE_TOKEN(TokenType::Error, "\033[1;36mHow did you get here?\033[0m");
+}
+
+void skipWhitespace(Source &file) {
+  while (!file.stream.eof()) {
+    switch (file.stream.peek()) {
+    case '\r':
+    case '\n': {
+      file.line++;
+      file.advance();
+      file.column = 0;
+    } break;
+    case ' ': {
+      file.advance();
+    } break;
+    case '\t': {
+      file.column += 3;
+      file.advance();
+    } break;
+    case '#': {
+      while (file.stream.peek() != '\n' || file.stream.peek() != '\r') {
+        file.advance();
+      }
+    } break;
+    default:
+      return;
+    }
+  }
+}
+
+std::shared_ptr<const Token> makeNumberToken(Source &file) {
+  size_t size = 0;
+  char *strlexeme = 0;
+  bool is_float = false;
+
+  while (isDigit(file.stream.peek())) {
+    strlexeme = (char *)realloc(strlexeme, ++size);
+    strlexeme[size - 1] = file.advance();
+  }
+
+  if (file.stream.peek() == '.') {
+    is_float = true;
+    strlexeme = (char *)realloc(strlexeme, ++size);
+    strlexeme[size - 1] = file.advance();
+
+    if (isDigit(file.stream.peek())) {
+      strlexeme = (char *)realloc(strlexeme, ++size);
+      strlexeme[size - 1] = file.advance();
+
+      while (isDigit(file.stream.peek())) {
+        strlexeme = (char *)realloc(strlexeme, ++size);
+        strlexeme[size - 1] = file.advance();
+      }
     }
   }
 
-  return typeIfMatch;
+  strlexeme = (char *)realloc(strlexeme, ++size);
+  strlexeme[size - 1] = 0;
+
+  return MAKE_TOKEN(TokenType::Number,
+                    (is_float ? std::stof(strlexeme) : std::stoi(strlexeme)));
 }
 
-TokenType Lexer::isIdentifierOrKeywork() {
-  switch (*start) {
+std::shared_ptr<const Token> makeIdentifierToken(Source &file) {
+  size_t size = 0;
+  char *strlexeme = 0;
+
+  while (isAlpha(file.stream.peek()) || isDigit(file.stream.peek())) {
+    strlexeme = (char *)realloc(strlexeme, ++size);
+    strlexeme[size - 1] = file.advance();
+  }
+
+  strlexeme = (char *)realloc(strlexeme, ++size);
+  strlexeme[size - 1] = 0;
+
+  return MAKE_TOKEN(isIdentifierOrKeyword(strlexeme, size), strlexeme);
+}
+
+TokenType isIdentifierOrKeyword(const char *lexeme, size_t len) {
+  switch (lexeme[0]) {
   case 'b':
-    return checkKeyword(1, "reak", TokenType::Break);
+    return checkKeyword(lexeme, len, 1, "reak", TokenType::Break);
   case 'c':
-    if (current - start > 1) {
-      switch (*(start + 1)) {
+    if (len > 1) {
+      switch (lexeme[1]) {
       case 'l':
-        return checkKeyword(2, "ass", TokenType::Class);
+        return checkKeyword(lexeme, len, 2, "ass", TokenType::Break);
       case 'o':
-        return checkKeyword(2, "ntinue", TokenType::Continue);
+        return checkKeyword(lexeme, len, 2, "ntinue", TokenType::Continue);
       }
     }
 
     break;
   case 'e':
-    return checkKeyword(1, "lse", TokenType::Else);
+    return checkKeyword(lexeme, len, 1, "lse", TokenType::Else);
   case 'f':
-    if (current - start > 1) {
-      switch (*(start + 1)) {
+    if (len > 1) {
+      switch (lexeme[1]) {
       case 'a':
-        return checkKeyword(2, "lse", TokenType::False);
+        return checkKeyword(lexeme, len, 2, "lse", TokenType::False);
       case 'o':
-        return checkKeyword(2, "r", TokenType::For);
+        return checkKeyword(lexeme, len, 2, "r", TokenType::For);
       case 'n':
-        return checkKeyword(2, "", TokenType::Fn);
+        return checkKeyword(lexeme, len, 2, "", TokenType::Fn);
       }
     }
 
     break;
   case 'i':
-    if (current - start > 1) {
-      switch (*(start + 1)) {
+    if (len > 1) {
+      switch (lexeme[1]) {
       case 'f':
-        return checkKeyword(2, "", TokenType::If);
+        return checkKeyword(lexeme, len, 2, "", TokenType::If);
       case 'm':
-        return checkKeyword(2, "port", TokenType::Import);
+        return checkKeyword(lexeme, len, 2, "port", TokenType::Import);
       }
     }
 
     break;
   case 'l':
-    if (current - start > 1) {
-      switch (*(start + 1)) {
+    if (len > 1) {
+      switch (lexeme[1]) {
       case 'e':
-        return checkKeyword(2, "t", TokenType::Let);
+        return checkKeyword(lexeme, len, 2, "t", TokenType::Let);
       case 'o':
-        return checkKeyword(2, "op", TokenType::Loop);
+        return checkKeyword(lexeme, len, 2, "op", TokenType::Loop);
       }
     }
     break;
   case 'n':
-    return checkKeyword(1, "il", TokenType::Nil);
+    return checkKeyword(lexeme, len, 1, "il", TokenType::Nil);
   case 'r':
-    return checkKeyword(1, "eturn", TokenType::Return);
+    return checkKeyword(lexeme, len, 1, "eturn", TokenType::Return);
   case 's':
-    return checkKeyword(1, "uper", TokenType::Super);
+    return checkKeyword(lexeme, len, 1, "uper", TokenType::Super);
   case 't':
-    if (current - start > 1) {
-      switch (*(start + 1)) {
+    if (len > 1) {
+      switch (lexeme[1]) {
       case 'r':
-        return checkKeyword(2, "ue", TokenType::True);
+        return checkKeyword(lexeme, len, 2, "ue", TokenType::True);
       case 'h':
-        return checkKeyword(2, "is", TokenType::This);
+        return checkKeyword(lexeme, len, 2, "is", TokenType::This);
       }
     }
     break;
   case 'w':
-    return checkKeyword(1, "hile", TokenType::While);
+    return checkKeyword(lexeme, len, 1, "hile", TokenType::While);
   }
 
   return TokenType::Identifier;
 }
 
-std::shared_ptr<const Token> Lexer::makeToken(TokenType type,
-                                              std::string value) {
-  if (value != "") {
-    return std::make_shared<const Token>(type, value, line,
-                                         current-start, filename);
+TokenType checkKeyword(const char *token, size_t token_len, int startIndex,
+                       const std::string_view &restOfKeyword,
+                       TokenType typeIfMatch) {
+  if ((token_len - startIndex) != (restOfKeyword.length() + 1)) {
+    return TokenType::Identifier;
   }
 
-  return std::make_shared<const Token>(type, std::string(start, current), line,
-                                       current-start, filename);
+  if (strcmp(token + startIndex, restOfKeyword.data())) {
+    return TokenType::Identifier;
+  }
+
+  return typeIfMatch;
 }
-
-std::shared_ptr<const Token> Lexer::makeNumberToken() {
-  while (isDigit(peek())) {
-    advance();
-  }
-
-  if (peek() == '.' && isDigit(peekNext())) {
-    advance();
-    while (isDigit(peek())) {
-      advance();
-    }
-  }
-
-  return makeToken(TokenType::Number);
-}
-
-std::shared_ptr<const Token> Lexer::makeIdentifierToken() {
-  while (isAlpha(peek()) || isDigit(peek()) || peek() < 0) {
-    advance();
-  }
-
-  return makeToken(isIdentifierOrKeywork());
-}
-
-std::shared_ptr<const Token> Lexer::makeErrorToken(std::string msg) {
-  hadError = true;
-  return std::make_shared<const Token>(TokenType::Error, msg, line,
-                                       current-start, filename);
-}
-
-void Lexer::skipWhitespace() {
-  do {
-    switch (peek()) {
-    case '\n':
-      line++;
-    case ' ':
-    case '\r':
-    case '\t':
-      advance();
-      break;
-    case '#':
-      while (peek() != '\n') {
-        advance();
-      }
-
-      break;
-    default:
-      return;
-    }
-  } while (!isAtEnd());
-}
-
-std::shared_ptr<const Token> Lexer::getNextToken() {
-  skipWhitespace();
-  start = current;
-
-  char ch = advance();
-
-  if (isDigit(ch)) {
-    return makeNumberToken();
-  } else if (isAlpha(ch) || (int)ch < 0) {
-    return makeIdentifierToken();
-  }
-
-  switch (ch) {
-  case '(':
-    return makeToken(TokenType::LeftParen);
-  case ')':
-    return makeToken(TokenType::RightParen);
-  case '{':
-    return makeToken(TokenType::LeftBrace);
-  case '}':
-    return makeToken(TokenType::RightBrace);
-  case '?':
-    return makeToken(TokenType::Question);
-  case ',':
-    return makeToken(TokenType::Comma);
-  case '.':
-    return makeToken(TokenType::Dot);
-  case ':':
-    return makeToken(TokenType::Colon);
-  case ';':
-    return makeToken(TokenType::Semicolon);
-  case '%':
-    return makeToken(TokenType::ModOp);
-  case '&':
-    if (match('&')) {
-      return makeToken(TokenType::And);
-    }
-    return makeErrorToken("Invalid token '" + std::to_string(*current) + "'.");
-  case '|':
-    if (match('|')) {
-      return makeToken(TokenType::Or);
-    }
-    return makeErrorToken("Invalid token '" + std::to_string(*current) + "'.");
-  case '-':
-    return makeToken(TokenType::Minus);
-  case '+':
-    return makeToken(TokenType::Plus);
-  case '/':
-    return makeToken(TokenType::Slash);
-  case '*':
-    return makeToken(TokenType::Star);
-  case '!':
-    if (match('=')) {
-      return makeToken(TokenType::BangEqual);
-    }
-    return makeToken(TokenType::Bang);
-  case '=':
-    if (match('=')) {
-      return makeToken(TokenType::EqualEqual);
-    }
-    return makeToken(TokenType::Equal);
-  case '>':
-    if (match('>')) {
-      return makeToken(TokenType::ShiftRight);
-    }
-    if (match('=')) {
-      return makeToken(TokenType::GreaterEqual);
-    }
-    return makeToken(TokenType::Greater);
-  case '<':
-    if (match('<')) {
-      return makeToken(TokenType::ShiftLeft);
-    }
-    if (match('=')) {
-      return makeToken(TokenType::LessEqual);
-    }
-    return makeToken(TokenType::Less);
-  case '\'': {
-    std::string val(1, advance());
-    if (!match('\'')) {
-      auto res =
-          makeErrorToken("A char can't be more then one character long.");
-      return res;
-    }
-    return makeToken(TokenType::Char, val);
-  }
-  case '"': {
-    std::string lexeme;
-
-    while (peek() != '"' && !isAtEnd()) {
-      if (peek() == '\\') {
-        advance();
-
-        switch (peek()) {
-        case 'n':
-          lexeme += "\n";
-          break;
-        case 't':
-          lexeme += "\t";
-          break;
-        case 'r':
-          lexeme += "\r";
-          break;
-        case '\'':
-          lexeme += "'";
-          break;
-        case '\"':
-          lexeme += "\"";
-          break;
-        case '\\':
-          lexeme += "\\";
-          break;
-        }
-
-        advance();
-      } else {
-        lexeme += advance();
-      }
-    }
-
-    if (isAtEnd()) {
-      return makeErrorToken("Unterminated string.");
-    }
-
-    advance();
-    return makeToken(TokenType::String, lexeme);
-  }
-  }
-
-  if (isAtEnd()) {
-    return makeToken(TokenType::Eof, "EoF");
-  }
-
-  return makeErrorToken("\033[1;36mHow did you get here?\033[0m");
-}
-
-int Lexer::getLine() { return line; }
-int Lexer::getColumn() { return current - start; }
-std::string Lexer::getFilename() { return filename; }
+} // namespace Lexer

@@ -2,11 +2,11 @@
 #include "LBPLTypes.hpp"
 #include "runtime_error.hpp"
 
+#include <iostream>
 #include <memory>
 #include <string>
 #include <utility>
 #include <variant>
-#include <iostream>
 
 void Environment::define(const std::string &name, Value &value) {
   env.insert(std::make_pair(name, value));
@@ -16,7 +16,8 @@ void Environment::define(const std::string &name, Value &&value) {
 }
 
 Value Environment::get(std::shared_ptr<const Token> &name) {
-  auto it = env.find(name->lexeme);
+  const char *namestr = std::get<const char *>(name->lexeme);
+  auto it = env.find(namestr);
 
   if (it != env.end()) {
     return it->second;
@@ -25,11 +26,12 @@ Value Environment::get(std::shared_ptr<const Token> &name) {
     return enclosing->get(name);
   }
 
-  throw RuntimeError(name.get(), "Undefined name '" + name->lexeme + "'.");
+  throw RuntimeError(name.get(),
+                     "Undefined name '" + std::string(namestr) + "'.");
 }
 
 Value Environment::getAt(int depth, std::shared_ptr<const Token> &name) {
-  return getAt(depth, name->lexeme);
+  return getAt(depth, std::get<const char *>(name->lexeme));
 }
 
 Value Environment::getAt(int depth, const std::string &name) {
@@ -42,13 +44,14 @@ Value Environment::getAt(int depth, const std::string &name) {
 }
 
 void Environment::assign(std::shared_ptr<const Token> &name, Value &value) {
-  if (env.contains(name->lexeme)) {
-    env.insert_or_assign(name->lexeme, value);
+  if (auto namestr = std::get<const char *>(name->lexeme);
+      env.contains(namestr)) {
+    env.insert_or_assign(namestr, value);
   } else if (enclosing) {
     enclosing->assign(name, value);
   } else {
     throw RuntimeError(name.get(),
-                       "Undefined variable '" + name->lexeme + "'.");
+                       "Undefined variable '" + std::string(namestr) + "'.");
   }
 }
 
@@ -62,7 +65,7 @@ void Environment::assignAt(int depth, std::shared_ptr<const Token> &name,
     enclosing->assignAt(depth - 1, name, value);
   }
 
-  env.insert_or_assign(name->lexeme, value);
+  env.insert_or_assign(std::get<const char *>(name->lexeme), value);
 }
 
 void Environment::printEnv(const std::string &&msg) {
