@@ -1,12 +1,14 @@
 #include "parser.hpp"
 #include "syntax_error.hpp"
 
+#include <cstdint>
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <variant>
 
 std::vector<std::unique_ptr<Stmt>> Parser::parse() {
   std::vector<std::unique_ptr<Stmt>> stmts;
@@ -279,7 +281,7 @@ std::unique_ptr<Expr> Parser::expression() {
   if (match(TokenType::Break)) {
     return std::make_unique<BreakExpr>(current->line, current->column,
                                        current->filename);
-  } else if (match(TokenType::Break)) {
+  } else if (match(TokenType::Continue)) {
     return std::make_unique<ContinueExpr>(current->line, current->column,
                                           current->filename);
   }

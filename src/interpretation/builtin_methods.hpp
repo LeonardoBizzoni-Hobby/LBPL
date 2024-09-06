@@ -11,7 +11,7 @@ class LBPLPrintln : public LBPLCallable {
 public:
   LBPLPrintln() {}
 
-  int arity() override { return 1; };
+  constexpr int arity() override { return 1; };
 
   Value call(Interpreter *, std::vector<Value> &args) override {
     if (std::holds_alternative<std::string>(args[0])) {
@@ -34,7 +34,7 @@ class LBPLClock : public LBPLCallable {
 public:
   LBPLClock() {}
 
-  int arity() override { return 0; };
+  constexpr int arity() override { return 0; };
 
   Value call(Interpreter *, std::vector<Value> &args) override {
     return std::chrono::duration_cast<std::chrono::milliseconds>(

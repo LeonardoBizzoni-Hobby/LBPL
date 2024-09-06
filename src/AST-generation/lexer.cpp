@@ -121,7 +121,7 @@ std::shared_ptr<const Token> getNextToken(Source &file) {
     char *lexeme = 0;
     char new_ch = 0;
 
-    while (file.stream.eof() && file.stream.peek() != '"') {
+    while (file.stream.peek() != EOF && file.stream.peek() != '"') {
       if (file.stream.peek() == '\\') {
         file.advance();
 
@@ -157,7 +157,7 @@ std::shared_ptr<const Token> getNextToken(Source &file) {
       lexeme[len - 1] = new_ch;
     }
 
-    if (file.stream.eof()) {
+    if (file.stream.peek() == EOF) {
       return MAKE_TOKEN(TokenType::Error, "Unterminated string.");
     } else {
       file.advance();
@@ -256,7 +256,7 @@ TokenType isIdentifierOrKeyword(const char *lexeme, size_t len) {
     if (len > 1) {
       switch (lexeme[1]) {
       case 'l':
-        return checkKeyword(lexeme, len, 2, "ass", TokenType::Break);
+        return checkKeyword(lexeme, len, 2, "ass", TokenType::Class);
       case 'o':
         return checkKeyword(lexeme, len, 2, "ntinue", TokenType::Continue);
       }
