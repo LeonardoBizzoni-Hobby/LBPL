@@ -1,3 +1,5 @@
+#+AUTHOR: Leonardo Bizzoni
+
 * Running it
 #+begin_src
 git clone https://github.com/LeonardoBizzoni/LBPL.git
@@ -9,19 +11,19 @@ make
 #+end_src
 
 * Example script
-#+begin_src
+#+begin_src lbpl :tangle main.lbpl
 fn fib(n) {
-   return fibIter(n, 0, 1);
-}
-
-fn fibIter(n, curr, next) {
-   if (n == 0) {
-      return curr;
-   } else if (n == 1) {
-     return next;
-   } else {
-     return fibIter(n - 1, next, curr + next);
+   fn fibIter(n, curr, next) {
+      if (n == 0) {
+      	 return curr;
+      } else if (n == 1) {
+      	return next;
+      } else {
+      	return fibIter(n - 1, next, curr + next);
+      }
    }
+
+   return fibIter(n, 0, 1);
 }
 
 class Prova {
@@ -33,7 +35,9 @@ class Prova {
     }
 
     runtime() {
-        println("fib("+ this.n +") = "+ this.fib_n + " runtime: " +
+        println("fib("+ this.n +") = " +
+	        this.fib_n +
+                " runtime: " +
                 (this.end - this.start));
     }
 }
