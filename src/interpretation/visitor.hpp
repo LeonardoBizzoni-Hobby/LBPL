@@ -1,7 +1,7 @@
 #ifndef VISITOR_H
 #define VISITOR_H
 
-#include "LBPLTypes.hpp"
+#include "types/LBPLTypes.hpp"
 #include "tree_nodes.hpp"
 
 namespace Statement {

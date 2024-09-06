@@ -1,5 +1,5 @@
 #include "LBPLInstance.hpp"
-#include "runtime_error.hpp"
+#include "../runtime_error.hpp"
 #include <string>
 
 Value LBPLInstance::get(const Token *name) {

@@ -1,5 +1,5 @@
 #include "LBPLFunction.hpp"
-#include "interpreter.hpp"
+#include "../interpreter.hpp"
 
 void LBPLFunc::bind(std::shared_ptr<LBPLInstance> &&instance) {
   closureEnv = std::make_shared<Environment>();

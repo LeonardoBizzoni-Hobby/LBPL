@@ -1,7 +1,7 @@
 #ifndef BUILTIN_METHODS_H
 #define BUILTIN_METHODS_H
 
-#include "LBPLCallable.hpp"
+#include "types/LBPLCallable.hpp"
 
 #include <chrono>
 #include <iostream>

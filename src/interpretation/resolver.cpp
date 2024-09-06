@@ -1,5 +1,5 @@
 #include "resolver.hpp"
-#include "syntax_error.hpp"
+#include "../AST-generation/syntax_error.hpp"
 #include <string_view>
 
 void Resolver::resolve(std::vector<std::unique_ptr<Stmt>> &stmts) {
@@ -39,7 +39,7 @@ void Resolver::define(const Token *name) {
 void Resolver::resolveLocal(Expr *expr, const Token *name) {
   for (int i = scopes.size() - 1; i >= 0; i--) {
     if (scopes[i].contains(std::get<const char *>(name->lexeme))) {
-      interpreter->resolve(expr, scopes.size() - 1 - i);
+      interpreter.resolve(expr, scopes.size() - 1 - i);
       return;
     }
   }
@@ -48,7 +48,7 @@ void Resolver::resolveLocal(Expr *expr, const Token *name) {
 void Resolver::resolveLocal(Expr *expr, const std::string &name) {
   for (int i = scopes.size() - 1; i >= 0; i--) {
     if (scopes[i].contains(name)) {
-      interpreter->resolve(expr, scopes.size() - 1 - i);
+      interpreter.resolve(expr, scopes.size() - 1 - i);
       return;
     }
   }

@@ -1,20 +1,18 @@
 #ifndef EXPRESSIONS_H
 #define EXPRESSIONS_H
 
-#include "token.hpp"
+#include "tokens/token.hpp"
 
-#include "token.hpp"
-#include "visitor.hpp"
-#include <string>
+#include "../interpretation/visitor.hpp"
 
 #include <memory>
 #include <vector>
 
 struct Expr {
-  std::string file;
+  const char *file;
   int line, column;
 
-  Expr(int line, int column, const std::string &filename)
+  Expr(int line, int column, const char *filename)
       : line(line), column(column), file(filename) {}
 
   virtual ~Expr() {};
@@ -26,12 +24,12 @@ struct BinaryExpr : public Expr {
   std::unique_ptr<Expr> right;
   std::shared_ptr<const Token> op;
 
-  BinaryExpr(int line, int column, const std::string &file,
+  BinaryExpr(int line, int column, const char *file,
              std::unique_ptr<Expr> &left, std::unique_ptr<Expr> &right,
              std::shared_ptr<const Token> &op)
       : left(std::move(left)), right(std::move(right)), op(op),
         Expr(line, column, file) {}
-  BinaryExpr(int line, int column, const std::string &file,
+  BinaryExpr(int line, int column, const char *file,
              std::unique_ptr<Expr> &left, std::unique_ptr<Expr> &&right,
              std::shared_ptr<const Token> &op)
       : left(std::move(left)), right(std::move(right)), op(op),
@@ -43,7 +41,7 @@ struct BinaryExpr : public Expr {
 };
 
 struct BreakExpr : public Expr {
-  BreakExpr(int line, int column, const std::string &file)
+  BreakExpr(int line, int column, const char *file)
       : Expr(line, column, file) {}
 
   Value accept(Expression::Visitor *visitor) {
@@ -52,7 +50,7 @@ struct BreakExpr : public Expr {
 };
 
 struct ContinueExpr : public Expr {
-  ContinueExpr(int line, int column, const std::string &file)
+  ContinueExpr(int line, int column, const char *file)
       : Expr(line, column, file) {}
   Value accept(Expression::Visitor *visitor) {
     return visitor->visitContinueExpr(this);
@@ -63,8 +61,8 @@ struct UnaryExpr : public Expr {
   std::unique_ptr<Expr> right;
   std::shared_ptr<const Token> op;
 
-  UnaryExpr(int line, int column, const std::string &file,
-            std::unique_ptr<Expr> right, std::shared_ptr<const Token> &op)
+  UnaryExpr(int line, int column, const char *file, std::unique_ptr<Expr> right,
+            std::shared_ptr<const Token> &op)
       : right(std::move(right)), op(op), Expr(line, column, file) {}
   Value accept(Expression::Visitor *visitor) {
     return visitor->visitUnaryExpr(this);
@@ -74,10 +72,10 @@ struct UnaryExpr : public Expr {
 struct LiteralExpr : public Expr {
   std::shared_ptr<const Token> token;
 
-  LiteralExpr(int line, int column, const std::string &file,
+  LiteralExpr(int line, int column, const char *file,
               std::shared_ptr<const Token> &literal)
       : token(literal), Expr(line, column, file) {}
-  LiteralExpr(int line, int column, const std::string &file,
+  LiteralExpr(int line, int column, const char *file,
               std::shared_ptr<const Token> &&literal)
       : token(literal), Expr(line, column, file) {}
   Value accept(Expression::Visitor *visitor) {
@@ -88,7 +86,7 @@ struct LiteralExpr : public Expr {
 struct SuperExpr : public Expr {
   std::shared_ptr<const Token> field;
 
-  SuperExpr(int line, int column, const std::string &file,
+  SuperExpr(int line, int column, const char *file,
             std::shared_ptr<const Token> &field)
       : field(field), Expr(line, column, file) {}
   Value accept(Expression::Visitor *visitor) {
@@ -100,7 +98,7 @@ struct ThisExpr : public Expr {
 public:
   std::shared_ptr<const Token> keyword;
 
-  ThisExpr(int line, int column, const std::string &file,
+  ThisExpr(int line, int column, const char *file,
            std::shared_ptr<const Token> &keyword)
       : keyword(keyword), Expr(line, column, file) {}
 
@@ -112,7 +110,7 @@ public:
 struct GroupingExpr : public Expr {
   std::unique_ptr<Expr> expr;
 
-  GroupingExpr(int line, int column, const std::string &file,
+  GroupingExpr(int line, int column, const char *file,
                std::unique_ptr<Expr> &expr)
       : expr(std::move(expr)), Expr(line, column, file) {}
   Value accept(Expression::Visitor *visitor) {
@@ -123,7 +121,7 @@ struct GroupingExpr : public Expr {
 struct VariableExpr : public Expr {
   std::shared_ptr<const Token> variable;
 
-  VariableExpr(int line, int column, const std::string &file,
+  VariableExpr(int line, int column, const char *file,
                std::shared_ptr<const Token> &variable)
       : variable(variable), Expr(line, column, file) {}
   Value accept(Expression::Visitor *visitor) {
@@ -135,7 +133,7 @@ struct AssignExpr : public Expr {
   std::shared_ptr<const Token> variable;
   std::unique_ptr<Expr> value;
 
-  AssignExpr(int line, int column, const std::string &file,
+  AssignExpr(int line, int column, const char *file,
              std::shared_ptr<const Token> &variable,
              std::unique_ptr<Expr> &value)
       : variable(variable), value(std::move(value)), Expr(line, column, file) {}
@@ -149,7 +147,7 @@ struct FnCallExpr : public Expr {
   std::unique_ptr<Expr> callee;
   std::vector<std::unique_ptr<Expr>> args;
 
-  FnCallExpr(int line, int column, const std::string &file,
+  FnCallExpr(int line, int column, const char *file,
              std::unique_ptr<Expr> &callee,
              std::vector<std::unique_ptr<Expr>> &args)
       : callee(std::move(callee)), args(std::move(args)),
@@ -165,7 +163,7 @@ struct TernaryExpr : public Expr {
   std::unique_ptr<Expr> trueBranch;
   std::unique_ptr<Expr> falseBranch;
 
-  TernaryExpr(int line, int column, const std::string &file,
+  TernaryExpr(int line, int column, const char *file,
               std::unique_ptr<Expr> &condition,
               std::unique_ptr<Expr> &trueBranch,
               std::unique_ptr<Expr> &&falseBranch)
@@ -181,7 +179,7 @@ struct GetFieldExpr : public Expr {
   std::shared_ptr<const Token> field;
   std::unique_ptr<Expr> instance;
 
-  GetFieldExpr(int line, int column, const std::string &file,
+  GetFieldExpr(int line, int column, const char *file,
                std::unique_ptr<Expr> &instance,
                std::shared_ptr<const Token> &field)
       : instance(std::move(instance)), field(field), Expr(line, column, file) {}
@@ -196,7 +194,7 @@ struct SetFieldExpr : public Expr {
   std::unique_ptr<Expr> value;
   std::unique_ptr<Expr> instance;
 
-  SetFieldExpr(int line, int column, const std::string &file,
+  SetFieldExpr(int line, int column, const char *file,
                std::unique_ptr<Expr> &instance,
                std::shared_ptr<const Token> &field,
                std::unique_ptr<Expr> &value)

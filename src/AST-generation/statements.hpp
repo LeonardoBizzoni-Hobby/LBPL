@@ -5,10 +5,10 @@
 #include <memory>
 
 struct Stmt {
-  std::string filename;
+  const char *filename;
   int line, column;
 
-  Stmt(int line, int column, const std::string &filename)
+  Stmt(int line, int column, const char *filename)
       : line(line), column(column), filename(filename) {}
 
   virtual ~Stmt() {}
@@ -20,7 +20,7 @@ struct FnStmt : public Stmt {
   std::vector<std::shared_ptr<const Token>> args;
   std::vector<std::unique_ptr<Stmt>> body;
 
-  FnStmt(int line, int column, const std::string &file,
+  FnStmt(int line, int column, const char *file,
          std::shared_ptr<const Token> &name,
          std::vector<std::shared_ptr<const Token>> &args,
          std::vector<std::unique_ptr<Stmt>> &&body)
@@ -34,7 +34,7 @@ struct VarStmt : public Stmt {
   std::shared_ptr<const Token> name;
   std::unique_ptr<Expr> value;
 
-  VarStmt(int line, int column, const std::string &file,
+  VarStmt(int line, int column, const char *file,
           std::shared_ptr<const Token> &name, std::unique_ptr<Expr> &value)
       : name(name), value(std::move(value)), Stmt(line, column, file) {}
 
@@ -46,7 +46,7 @@ struct ClassStmt : public Stmt {
   std::unique_ptr<VariableExpr> superclass;
   std::vector<std::unique_ptr<Stmt>> body;
 
-  ClassStmt(int line, int column, const std::string &file,
+  ClassStmt(int line, int column, const char *file,
             std::shared_ptr<const Token> &name,
             std::unique_ptr<VariableExpr> &superclass,
             std::vector<std::unique_ptr<Stmt>> &&body)
@@ -61,7 +61,7 @@ struct IfStmt : public Stmt {
   std::unique_ptr<Stmt> trueBranch;
   std::unique_ptr<Stmt> falseBranch;
 
-  IfStmt(int line, int column, const std::string &file,
+  IfStmt(int line, int column, const char *file,
          std::unique_ptr<Expr> &condition, std::unique_ptr<Stmt> &trueBranch,
          std::unique_ptr<Stmt> &falseBranch)
       : condition(std::move(condition)), trueBranch(std::move(trueBranch)),
@@ -74,13 +74,13 @@ struct WhileStmt : public Stmt {
   std::unique_ptr<Expr> condition;
   std::unique_ptr<Stmt> body;
 
-  WhileStmt(int line, int column, const std::string &file,
-            std::unique_ptr<Expr> &cond, std::unique_ptr<Stmt> &body)
+  WhileStmt(int line, int column, const char *file, std::unique_ptr<Expr> &cond,
+            std::unique_ptr<Stmt> &body)
       : condition(std::move(cond)), body(std::move(body)),
         Stmt(line, column, file) {}
 
-  WhileStmt(int line, int column, const std::string &file,
-            std::unique_ptr<Expr> &cond, std::unique_ptr<Stmt> &&body)
+  WhileStmt(int line, int column, const char *file, std::unique_ptr<Expr> &cond,
+            std::unique_ptr<Stmt> &&body)
       : condition(std::move(cond)), body(std::move(body)),
         Stmt(line, column, file) {}
 
@@ -91,7 +91,7 @@ struct ForStmt : public Stmt {
   std::unique_ptr<Expr> increment, condition;
   std::unique_ptr<Stmt> initializer, body;
 
-  ForStmt(int line, int column, const std::string &file,
+  ForStmt(int line, int column, const char *file,
           std::unique_ptr<Stmt> &initializer, std::unique_ptr<Expr> &cond,
           std::unique_ptr<Expr> &increment, std::unique_ptr<Stmt> &body)
       : initializer(std::move(initializer)), condition(std::move(cond)),
@@ -104,7 +104,7 @@ struct ForStmt : public Stmt {
 struct ScopedStmt : public Stmt {
   std::vector<std::unique_ptr<Stmt>> body;
 
-  ScopedStmt(int line, int column, const std::string &file,
+  ScopedStmt(int line, int column, const char *file,
              std::vector<std::unique_ptr<Stmt>> &&body)
       : body(std::move(body)), Stmt(line, column, file) {}
   void accept(Statement::Visitor *visitor) { visitor->visitScopedStmt(this); }
@@ -113,8 +113,7 @@ struct ScopedStmt : public Stmt {
 struct ExprStmt : public Stmt {
   std::unique_ptr<Expr> expr;
 
-  ExprStmt(int line, int column, const std::string &file,
-           std::unique_ptr<Expr> &&expr)
+  ExprStmt(int line, int column, const char *file, std::unique_ptr<Expr> &&expr)
       : expr(std::move(expr)), Stmt(line, column, file) {}
 
   void accept(Statement::Visitor *visitor) { visitor->visitExprStmt(this); }
@@ -123,7 +122,7 @@ struct ExprStmt : public Stmt {
 struct ReturnStmt : public Stmt {
   std::unique_ptr<Expr> value;
 
-  ReturnStmt(int line, int column, const std::string &file,
+  ReturnStmt(int line, int column, const char *file,
              std::unique_ptr<Expr> &value)
       : value(std::move(value)), Stmt(line, column, file) {}
 

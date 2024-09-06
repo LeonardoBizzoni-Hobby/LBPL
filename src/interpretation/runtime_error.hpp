@@ -1,9 +1,8 @@
 #ifndef RUNTIME_ERROR_H
 #define RUNTIME_ERROR_H
 
-#include "expressions.hpp"
-#include "statements.hpp"
-#include "token.hpp"
+#include "../AST-generation/expressions.hpp"
+#include "../AST-generation/statements.hpp"
 
 #include <string>
 

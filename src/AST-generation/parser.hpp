@@ -4,8 +4,7 @@
 #include "expressions.hpp"
 #include "lexer.hpp"
 #include "statements.hpp"
-#include "syntax_error.hpp"
-#include "token_type.hpp"
+#include "tokens/token_type.hpp"
 
 #include <fstream>
 #include <memory>
@@ -20,14 +19,16 @@ class Parser {
 public:
   Parser(std::ifstream &file, const char *filename)
       : source(Lexer::Source(file, filename)),
-        current(Lexer::getNextToken(this->source)), previous(current) {
+        current(Lexer::getNextToken(this->source)), previous(current),
+        hadError(false) {
     importedFiles.insert(filename);
   }
 
   Parser(std::ifstream &file, const char *filename,
          std::unordered_set<std::string> &importedFiles)
       : importedFiles(importedFiles), source(Lexer::Source(file, filename)),
-        current(Lexer::getNextToken(this->source)), previous(current) {}
+        current(Lexer::getNextToken(this->source)), previous(current),
+        hadError(false) {}
 
   std::vector<std::unique_ptr<Stmt>> parse();
 

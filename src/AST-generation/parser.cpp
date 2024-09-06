@@ -1,6 +1,5 @@
 #include "parser.hpp"
 #include "syntax_error.hpp"
-#include "token_type.hpp"
 
 #include <fcntl.h>
 #include <fstream>

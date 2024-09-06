@@ -1,8 +1,8 @@
 #ifndef RESOLVER_H
 #define RESOLVER_H
 
+#include "../AST-generation/statements.hpp"
 #include "interpreter.hpp"
-#include "statements.hpp"
 #include "visitor.hpp"
 
 #include <map>
@@ -33,7 +33,7 @@ enum VarState {
 
 class Resolver : Statement::Visitor, Expression::Visitor {
 private:
-  Interpreter *interpreter;
+  Interpreter &interpreter;
   FunctionType::Type currentFn;
   ClassType::Type currentClass;
   int loops;
@@ -79,9 +79,9 @@ private:
   Value visitAssignExpr(AssignExpr *) override;
 
 public:
-  Resolver(Interpreter *interpreter)
+  Resolver(Interpreter &interpreter)
       : interpreter(interpreter), currentFn(FunctionType::None),
-        currentClass(ClassType::None), loops(0), scopes() {}
+        currentClass(ClassType::None), loops(0), scopes(), hadError(false) {}
 
   void resolve(std::vector<std::unique_ptr<Stmt>> &);
 };

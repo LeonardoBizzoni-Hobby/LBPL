@@ -1,9 +1,9 @@
 #ifndef LBPL_FUNCTION_H
 #define LBPL_FUNCTION_H
 
+#include "../../AST-generation/statements.hpp"
+#include "../environment.hpp"
 #include "LBPLCallable.hpp"
-#include "environment.hpp"
-#include "statements.hpp"
 
 #include <memory>
 

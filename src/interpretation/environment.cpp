@@ -1,5 +1,5 @@
 #include "environment.hpp"
-#include "LBPLTypes.hpp"
+#include "types/LBPLTypes.hpp"
 #include "runtime_error.hpp"
 
 #include <iostream>

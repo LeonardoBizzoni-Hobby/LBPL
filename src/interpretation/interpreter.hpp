@@ -1,9 +1,9 @@
 #ifndef INTERPRETER_H
 #define INTERPRETER_H
 
-#include "LBPLTypes.hpp"
 #include "builtin_methods.hpp"
 #include "environment.hpp"
+#include "types/LBPLTypes.hpp"
 #include "visitor.hpp"
 
 #include <map>
@@ -33,8 +33,8 @@ private:
   bool isTruthy(const Value &);
   bool isTruthy(Value &&);
 
-  Value performBinaryOperation(std::shared_ptr<const Token> &,
-                                  const Value &, const Value &);
+  Value performBinaryOperation(std::shared_ptr<const Token> &, const Value &,
+                               const Value &);
 
   void visitFnStmt(FnStmt *) override;
   void visitVarStmt(VarStmt *) override;

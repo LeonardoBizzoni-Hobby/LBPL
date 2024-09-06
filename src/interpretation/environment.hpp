@@ -1,8 +1,8 @@
 #ifndef ENVIRONMENT_H
 #define ENVIRONMENT_H
 
-#include "LBPLTypes.hpp"
-#include "token.hpp"
+#include "../AST-generation/tokens/token.hpp"
+#include "types/LBPLTypes.hpp"
 
 #include <map>
 #include <memory>

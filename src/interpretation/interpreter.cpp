@@ -1,8 +1,8 @@
 #include "interpreter.hpp"
-#include "LBPLClass.hpp"
-#include "LBPLFunction.hpp"
-#include "LBPLInstance.hpp"
-#include "LBPLTypes.hpp"
+#include "types/LBPLClass.hpp"
+#include "types/LBPLFunction.hpp"
+#include "types/LBPLInstance.hpp"
+#include "types/LBPLTypes.hpp"
 #include "runtime_error.hpp"
 
 #include <cstddef>

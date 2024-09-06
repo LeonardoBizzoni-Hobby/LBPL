@@ -3,7 +3,7 @@
 
 #include "expressions.hpp"
 #include "statements.hpp"
-#include "token.hpp"
+#include "tokens/token.hpp"
 
 #include <string>
 

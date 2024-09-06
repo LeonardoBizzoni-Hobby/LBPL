@@ -1,8 +1,8 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#include "token.hpp"
-#include "token_type.hpp"
+#include "tokens/token.hpp"
+#include "tokens/token_type.hpp"
 
 #include <cstdint>
 #include <fstream>
