@@ -19,6 +19,12 @@ add_executable(${PROJECT_NAME} ${SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 target_compile_definitions(${PROJECT_NAME} PRIVATE ROOTDIR="${CMAKE_SOURCE_DIR}")
 
+# Setup testing environment
+find_package(Catch2 3 REQUIRED)
+file(GLOB_RECURSE TEST_SRC "test/*.cpp" "test/*.hpp")
+add_executable(${PROJECT_NAME}-tests ${TEST_SRC})
+target_link_libraries(${PROJECT_NAME}-tests PRIVATE Catch2::Catch2WithMain)
+
 # Set output directories
 set_target_properties(${PROJECT_NAME} PROPERTIES
                       RUNTIME_OUTPUT_DIRECTORY "${OUTPUT_DIR}"

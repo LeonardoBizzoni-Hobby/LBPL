@@ -5,6 +5,7 @@ pkgs.mkShell {
     man-pages
     man-pages-posix
 
+    catch2_3
     gnumake
     cmake
     seer
